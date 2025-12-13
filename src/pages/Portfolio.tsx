@@ -1,33 +1,51 @@
 import { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import portraitImg from "@/assets/gallery-portrait.jpg";
-import corporateImg from "@/assets/gallery-corporate.jpg";
-import productImg from "@/assets/gallery-product.jpg";
-import documentaryImg from "@/assets/gallery-documentary.jpg";
-import eventImg from "@/assets/gallery-event.jpg";
-import heroWedding from "@/assets/hero-wedding.jpg";
+import { useSiteImage } from "@/hooks/useSiteImages";
 
 const categories = ["All", "Wedding", "Portrait", "Corporate", "Event", "Product"];
 
-const portfolioItems = [
-  { src: heroWedding, category: "Wedding", title: "Sarah & Michael" },
-  { src: portraitImg, category: "Portrait", title: "Elena Portrait" },
-  { src: corporateImg, category: "Corporate", title: "Tech Startup Team" },
-  { src: documentaryImg, category: "Wedding", title: "Garden Ceremony" },
-  { src: eventImg, category: "Event", title: "Anniversary Gala" },
-  { src: productImg, category: "Product", title: "Luxury Perfume" },
-  { src: portraitImg, category: "Portrait", title: "Executive Headshot" },
-  { src: heroWedding, category: "Wedding", title: "Beach Wedding" },
-  { src: corporateImg, category: "Corporate", title: "Board Meeting" },
+const portfolioItemsData = [
+  { imageKey: "hero-wedding", category: "Wedding", title: "Sarah & Michael" },
+  { imageKey: "gallery-portrait", category: "Portrait", title: "Elena Portrait" },
+  { imageKey: "gallery-corporate", category: "Corporate", title: "Tech Startup Team" },
+  { imageKey: "gallery-documentary", category: "Wedding", title: "Garden Ceremony" },
+  { imageKey: "gallery-event", category: "Event", title: "Anniversary Gala" },
+  { imageKey: "gallery-product", category: "Product", title: "Luxury Perfume" },
+  { imageKey: "portrait-gallery-1", category: "Portrait", title: "Executive Headshot" },
+  { imageKey: "wedding-gallery-1", category: "Wedding", title: "Beach Wedding" },
+  { imageKey: "service-corporate", category: "Corporate", title: "Board Meeting" },
 ];
+
+const PortfolioItem = ({ imageKey, category, title }: { imageKey: string; category: string; title: string }) => {
+  const { imageUrl } = useSiteImage(imageKey);
+  
+  return (
+    <div className="group relative overflow-hidden rounded-lg aspect-[4/5] cursor-pointer">
+      <img
+        src={imageUrl}
+        alt={title}
+        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
+        <p className="font-body text-xs uppercase tracking-widest text-primary mb-1">
+          {category}
+        </p>
+        <h3 className="font-display text-xl text-foreground">
+          {title}
+        </h3>
+      </div>
+    </div>
+  );
+};
 
 const Portfolio = () => {
   const [activeCategory, setActiveCategory] = useState("All");
 
   const filteredItems = activeCategory === "All" 
-    ? portfolioItems 
-    : portfolioItems.filter(item => item.category === activeCategory);
+    ? portfolioItemsData 
+    : portfolioItemsData.filter(item => item.category === activeCategory);
 
   return (
     <main className="min-h-screen bg-background">
@@ -74,25 +92,7 @@ const Portfolio = () => {
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredItems.map((item, index) => (
-              <div
-                key={index}
-                className="group relative overflow-hidden rounded-lg aspect-[4/5] cursor-pointer"
-              >
-                <img
-                  src={item.src}
-                  alt={item.title}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                  <p className="font-body text-xs uppercase tracking-widest text-primary mb-1">
-                    {item.category}
-                  </p>
-                  <h3 className="font-display text-xl text-foreground">
-                    {item.title}
-                  </h3>
-                </div>
-              </div>
+              <PortfolioItem key={index} {...item} />
             ))}
           </div>
         </div>

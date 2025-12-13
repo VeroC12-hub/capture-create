@@ -4,48 +4,35 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Check, ArrowLeft, Calendar, X } from "lucide-react";
+import { useSiteImage } from "@/hooks/useSiteImages";
 
-import serviceWedding from "@/assets/service-wedding.jpg";
-import servicePortrait from "@/assets/service-portrait.jpg";
-import serviceCorporate from "@/assets/service-corporate.jpg";
-import serviceEvent from "@/assets/service-event.jpg";
-import serviceProduct from "@/assets/service-product.jpg";
-import serviceDocumentary from "@/assets/service-documentary.jpg";
+type GalleryItem = { imageKey: string; caption: string };
+type Package = { name: string; price: string; description: string };
 
-// Wedding gallery
-import weddingGallery1 from "@/assets/wedding-gallery-1.jpg";
-import weddingGallery2 from "@/assets/wedding-gallery-2.jpg";
-import weddingGallery3 from "@/assets/wedding-gallery-3.jpg";
-import weddingGallery4 from "@/assets/wedding-gallery-4.jpg";
-import weddingGallery5 from "@/assets/wedding-gallery-5.jpg";
-import weddingGallery6 from "@/assets/wedding-gallery-6.jpg";
+interface ServiceData {
+  title: string;
+  tagline: string;
+  description: string;
+  heroImageKey: string;
+  gallery: GalleryItem[];
+  features: string[];
+  packages: Package[];
+}
 
-// Portrait gallery
-import portraitGallery1 from "@/assets/portrait-gallery-1.jpg";
-import portraitGallery2 from "@/assets/portrait-gallery-2.jpg";
-import portraitGallery3 from "@/assets/portrait-gallery-3.jpg";
-
-// Event gallery
-import eventGallery1 from "@/assets/event-gallery-1.jpg";
-import eventGallery2 from "@/assets/event-gallery-2.jpg";
-
-// Product gallery
-import productGallery1 from "@/assets/product-gallery-1.jpg";
-
-const servicesData = {
+const servicesData: Record<string, ServiceData> = {
   wedding: {
     title: "Wedding Photography",
     tagline: "For the wildly in love",
     description: "Your love story deserves to be told beautifully. We capture every emotion, every tear of joy, and every precious moment of your special day with artistry and heart.",
-    image: serviceWedding,
+    heroImageKey: "service-wedding",
     gallery: [
-      { src: weddingGallery1, caption: "The Ceremony" },
-      { src: weddingGallery2, caption: "Getting Ready" },
-      { src: weddingGallery3, caption: "First Dance" },
-      { src: weddingGallery4, caption: "The Details" },
-      { src: weddingGallery5, caption: "Bridal Party" },
-      { src: weddingGallery6, caption: "Golden Hour" },
-      { src: serviceWedding, caption: "Bride Portrait" },
+      { imageKey: "wedding-gallery-1", caption: "The Ceremony" },
+      { imageKey: "wedding-gallery-2", caption: "Getting Ready" },
+      { imageKey: "wedding-gallery-3", caption: "First Dance" },
+      { imageKey: "wedding-gallery-4", caption: "The Details" },
+      { imageKey: "wedding-gallery-5", caption: "Bridal Party" },
+      { imageKey: "wedding-gallery-6", caption: "Golden Hour" },
+      { imageKey: "service-wedding", caption: "Bride Portrait" },
     ],
     features: [
       "Full-day coverage (8-12 hours)",
@@ -67,12 +54,12 @@ const servicesData = {
     title: "Portrait Sessions",
     tagline: "Reveal your authentic self",
     description: "Professional portraits that capture your unique personality and style. Perfect for individuals, couples, families, and professional headshots.",
-    image: servicePortrait,
+    heroImageKey: "service-portrait",
     gallery: [
-      { src: servicePortrait, caption: "Studio Portrait" },
-      { src: portraitGallery1, caption: "Executive Headshot" },
-      { src: portraitGallery2, caption: "Family Session" },
-      { src: portraitGallery3, caption: "Couples Portrait" },
+      { imageKey: "service-portrait", caption: "Studio Portrait" },
+      { imageKey: "portrait-gallery-1", caption: "Executive Headshot" },
+      { imageKey: "portrait-gallery-2", caption: "Family Session" },
+      { imageKey: "portrait-gallery-3", caption: "Couples Portrait" },
     ],
     features: [
       "1-2 hour session",
@@ -94,11 +81,11 @@ const servicesData = {
     title: "Corporate Photography",
     tagline: "Elevate your brand image",
     description: "Polished corporate imagery that elevates your brand. From headshots to team photos and office environment shots, we deliver professional results.",
-    image: serviceCorporate,
+    heroImageKey: "service-corporate",
     gallery: [
-      { src: serviceCorporate, caption: "Team Photo" },
-      { src: portraitGallery1, caption: "Executive Headshot" },
-      { src: eventGallery1, caption: "Conference Coverage" },
+      { imageKey: "service-corporate", caption: "Team Photo" },
+      { imageKey: "portrait-gallery-1", caption: "Executive Headshot" },
+      { imageKey: "event-gallery-1", caption: "Conference Coverage" },
     ],
     features: [
       "Professional headshots",
@@ -120,12 +107,12 @@ const servicesData = {
     title: "Event Coverage",
     tagline: "Every moment matters",
     description: "Every celebration tells a story. We document your events with candid, energetic photography that captures the atmosphere and emotions.",
-    image: serviceEvent,
+    heroImageKey: "service-event",
     gallery: [
-      { src: serviceEvent, caption: "Celebration" },
-      { src: eventGallery1, caption: "Conference" },
-      { src: eventGallery2, caption: "Birthday Party" },
-      { src: weddingGallery3, caption: "Reception" },
+      { imageKey: "service-event", caption: "Celebration" },
+      { imageKey: "event-gallery-1", caption: "Conference" },
+      { imageKey: "event-gallery-2", caption: "Birthday Party" },
+      { imageKey: "wedding-gallery-3", caption: "Reception" },
     ],
     features: [
       "Full event coverage",
@@ -147,10 +134,10 @@ const servicesData = {
     title: "Product Photography",
     tagline: "Images that sell",
     description: "High-end product imagery that sells. Perfect for e-commerce, catalogs, and marketing materials. We make your products shine.",
-    image: serviceProduct,
+    heroImageKey: "service-product",
     gallery: [
-      { src: serviceProduct, caption: "Beauty Products" },
-      { src: productGallery1, caption: "Luxury Watch" },
+      { imageKey: "service-product", caption: "Beauty Products" },
+      { imageKey: "product-gallery-1", caption: "Luxury Watch" },
     ],
     features: [
       "Studio or on-location",
@@ -172,10 +159,10 @@ const servicesData = {
     title: "Documentary Photography",
     tagline: "Stories worth telling",
     description: "Authentic storytelling through candid, journalistic imagery. Perfect for personal projects, publications, and capturing real life moments.",
-    image: serviceDocumentary,
+    heroImageKey: "service-documentary",
     gallery: [
-      { src: serviceDocumentary, caption: "Street Life" },
-      { src: eventGallery2, caption: "Candid Moments" },
+      { imageKey: "service-documentary", caption: "Street Life" },
+      { imageKey: "event-gallery-2", caption: "Candid Moments" },
     ],
     features: [
       "Storytelling approach",
@@ -195,15 +182,52 @@ const servicesData = {
   }
 };
 
+const GalleryImage = ({ imageKey, caption, isLarge, onClick }: { imageKey: string; caption: string; isLarge?: boolean; onClick: () => void }) => {
+  const { imageUrl } = useSiteImage(imageKey);
+  
+  return (
+    <div
+      className={`group relative overflow-hidden rounded-lg cursor-pointer ${
+        isLarge ? "col-span-2 row-span-2" : ""
+      }`}
+      onClick={onClick}
+    >
+      <div className={`relative ${isLarge ? "aspect-square" : "aspect-[4/5]"}`}>
+        <img
+          src={imageUrl}
+          alt={caption}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-background/0 group-hover:bg-background/30 transition-colors duration-300" />
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <p className="text-foreground font-display text-lg">{caption}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const HeroImage = ({ imageKey }: { imageKey: string }) => {
+  const { imageUrl } = useSiteImage(imageKey);
+  return (
+    <img
+      src={imageUrl}
+      alt="Service"
+      className="w-full h-full object-cover"
+    />
+  );
+};
+
 const ServiceDetail = () => {
   const { serviceType } = useParams<{ serviceType: string }>();
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageKey, setSelectedImageKey] = useState<string | null>(null);
+  const selectedImage = useSiteImage(selectedImageKey || "");
   
-  if (!serviceType || !servicesData[serviceType as keyof typeof servicesData]) {
+  if (!serviceType || !servicesData[serviceType]) {
     return <Navigate to="/services" replace />;
   }
 
-  const service = servicesData[serviceType as keyof typeof servicesData];
+  const service = servicesData[serviceType];
 
   return (
     <main className="min-h-screen bg-background">
@@ -212,11 +236,7 @@ const ServiceDetail = () => {
       {/* Hero with Full Image */}
       <section className="relative h-[70vh] min-h-[500px] flex items-end">
         <div className="absolute inset-0">
-          <img
-            src={service.image}
-            alt={service.title}
-            className="w-full h-full object-cover"
-          />
+          <HeroImage imageKey={service.heroImageKey} />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
         </div>
         
@@ -263,25 +283,13 @@ const ServiceDetail = () => {
           {/* Masonry-style Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {service.gallery.map((item, index) => (
-              <div
+              <GalleryImage
                 key={index}
-                className={`group relative overflow-hidden rounded-lg cursor-pointer ${
-                  index === 0 ? "col-span-2 row-span-2" : ""
-                } ${index === 3 ? "col-span-2" : ""}`}
-                onClick={() => setSelectedImage(item.src)}
-              >
-                <div className={`relative ${index === 0 ? "aspect-square" : "aspect-[4/5]"}`}>
-                  <img
-                    src={item.src}
-                    alt={item.caption}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-background/0 group-hover:bg-background/30 transition-colors duration-300" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <p className="text-foreground font-display text-lg">{item.caption}</p>
-                  </div>
-                </div>
-              </div>
+                imageKey={item.imageKey}
+                caption={item.caption}
+                isLarge={index === 0}
+                onClick={() => setSelectedImageKey(item.imageKey)}
+              />
             ))}
           </div>
         </div>
@@ -378,19 +386,19 @@ const ServiceDetail = () => {
       </section>
 
       {/* Lightbox */}
-      {selectedImage && (
+      {selectedImageKey && (
         <div 
           className="fixed inset-0 z-50 bg-background/95 flex items-center justify-center p-4"
-          onClick={() => setSelectedImage(null)}
+          onClick={() => setSelectedImageKey(null)}
         >
           <button 
             className="absolute top-6 right-6 text-foreground hover:text-primary transition-colors"
-            onClick={() => setSelectedImage(null)}
+            onClick={() => setSelectedImageKey(null)}
           >
             <X className="w-8 h-8" />
           </button>
           <img
-            src={selectedImage}
+            src={selectedImage.imageUrl}
             alt="Gallery image"
             className="max-w-full max-h-[90vh] object-contain rounded-lg"
             onClick={(e) => e.stopPropagation()}

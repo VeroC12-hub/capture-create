@@ -7,6 +7,7 @@ import { HomepageGalleryManager } from "@/components/admin/HomepageGalleryManage
 import { ClientGalleryManager } from "@/components/admin/ClientGalleryManager";
 import { BookingsManager } from "@/components/admin/BookingsManager";
 import { GoogleDriveConnect } from "@/components/admin/GoogleDriveConnect";
+import SiteImagesManager from "@/components/admin/SiteImagesManager";
 import {
   Image as ImageIcon,
   FolderOpen,
@@ -15,11 +16,12 @@ import {
   Home,
   Loader2,
   Settings,
+  Images,
 } from "lucide-react";
 
 const Admin = () => {
   const { user, session, isAdmin, isLoading, signOut } = useAuth();
-  const [activeTab, setActiveTab] = useState("homepage");
+  const [activeTab, setActiveTab] = useState("site-images");
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Handle Google OAuth callback
@@ -99,7 +101,12 @@ const Admin = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 mb-8">
+          <TabsList className="grid w-full grid-cols-5 mb-8">
+            <TabsTrigger value="site-images" className="flex items-center gap-2">
+              <Images className="w-4 h-4" />
+              <span className="hidden sm:inline">Site Images</span>
+              <span className="sm:hidden">Images</span>
+            </TabsTrigger>
             <TabsTrigger value="homepage" className="flex items-center gap-2">
               <ImageIcon className="w-4 h-4" />
               <span className="hidden sm:inline">Homepage Gallery</span>
@@ -121,6 +128,10 @@ const Admin = () => {
               <span className="sm:hidden">Settings</span>
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="site-images">
+            <SiteImagesManager />
+          </TabsContent>
 
           <TabsContent value="homepage">
             <HomepageGalleryManager />
