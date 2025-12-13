@@ -1,14 +1,16 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import heroImage from "@/assets/hero-wedding.jpg";
+import { useSiteImage } from "@/hooks/useSiteImages";
 
 const HeroSection = () => {
+  const { imageUrl } = useSiteImage("hero-wedding");
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <img
-          src={heroImage}
+          src={imageUrl}
           alt="Romantic wedding photography at sunset"
           className="w-full h-full object-cover"
         />

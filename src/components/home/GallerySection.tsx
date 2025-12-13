@@ -1,20 +1,27 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import portraitImg from "@/assets/gallery-portrait.jpg";
-import corporateImg from "@/assets/gallery-corporate.jpg";
-import productImg from "@/assets/gallery-product.jpg";
-import documentaryImg from "@/assets/gallery-documentary.jpg";
-import eventImg from "@/assets/gallery-event.jpg";
+import { useSiteImage } from "@/hooks/useSiteImages";
 
-const galleryImages = [
-  { src: portraitImg, alt: "Portrait photography", category: "Portrait" },
-  { src: corporateImg, alt: "Corporate photography", category: "Corporate" },
-  { src: productImg, alt: "Product photography", category: "Product" },
-  { src: documentaryImg, alt: "Documentary photography", category: "Wedding" },
-  { src: eventImg, alt: "Event photography", category: "Event" },
-];
+const GalleryImage = ({ imageKey, alt, category }: { imageKey: string; alt: string; category: string }) => {
+  const { imageUrl } = useSiteImage(imageKey);
+  return { src: imageUrl, alt, category };
+};
 
 const GallerySection = () => {
+  const portrait = useSiteImage("gallery-portrait");
+  const corporate = useSiteImage("gallery-corporate");
+  const product = useSiteImage("gallery-product");
+  const documentary = useSiteImage("gallery-documentary");
+  const event = useSiteImage("gallery-event");
+
+  const galleryImages = [
+    { src: portrait.imageUrl, alt: "Portrait photography", category: "Portrait" },
+    { src: corporate.imageUrl, alt: "Corporate photography", category: "Corporate" },
+    { src: product.imageUrl, alt: "Product photography", category: "Product" },
+    { src: documentary.imageUrl, alt: "Documentary photography", category: "Wedding" },
+    { src: event.imageUrl, alt: "Event photography", category: "Event" },
+  ];
+
   return (
     <section className="py-24 bg-charcoal">
       <div className="container mx-auto px-6">
