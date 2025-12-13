@@ -37,7 +37,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <span className="font-display text-2xl md:text-3xl font-semibold text-primary italic">
-              Your Studio
+              SamBlessing
             </span>
           </Link>
 

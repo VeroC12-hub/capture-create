@@ -125,7 +125,7 @@ const ClientPortal = () => {
 
         {/* Footer */}
         <p className="text-center text-muted-foreground text-sm mt-8">
-          <span className="font-display italic text-primary">Your Studio</span> © {new Date().getFullYear()}
+          <span className="font-display italic text-primary">SamBlessing Photography</span> © {new Date().getFullYear()}
         </p>
       </div>
     </main>

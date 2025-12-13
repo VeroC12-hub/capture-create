@@ -3,13 +3,13 @@ import { Instagram, Facebook, Mail, Phone, MapPin } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer className="bg-charcoal border-t border-border">
+    <footer className="bg-secondary border-t border-border">
       <div className="container mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* Brand */}
           <div className="md:col-span-1">
             <h3 className="font-display text-3xl font-semibold text-primary italic mb-4">
-              Your Studio
+              SamBlessing
             </h3>
             <p className="text-muted-foreground text-sm leading-relaxed">
               Capturing life's most precious moments with artistry and elegance.
@@ -87,7 +87,7 @@ const Footer = () => {
 
         <div className="border-t border-border mt-12 pt-8 text-center">
           <p className="text-muted-foreground text-sm">
-            © {new Date().getFullYear()} Your Studio. All rights reserved.
+            © {new Date().getFullYear()} SamBlessing Photography. All rights reserved.
           </p>
         </div>
       </div>
