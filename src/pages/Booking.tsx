@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -7,23 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Check } from "lucide-react";
+import { Calendar, Check, Camera, Video, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-
-const services = [
-  { id: "wedding", name: "Wedding Photography", price: "From $2,500" },
-  { id: "portrait", name: "Portrait Session", price: "From $300" },
-  { id: "corporate", name: "Corporate & Headshots", price: "From $500" },
-  { id: "events", name: "Event Coverage", price: "From $800" },
-  { id: "product", name: "Product Photography", price: "From $200" },
-  { id: "documentary", name: "Documentary", price: "Custom Quote" },
-];
+import { photographyPackages, videographyPackages, allPackages } from "@/data/pricingData";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Booking = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedService, setSelectedService] = useState("");
+  const [selectedPackage, setSelectedPackage] = useState<string>("");
+  const [serviceType, setServiceType] = useState<"photography" | "videography">("photography");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -36,13 +31,23 @@ const Booking = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleTabChange = (value: string) => {
+    setServiceType(value as "photography" | "videography");
+    setSelectedPackage(""); // Reset selection when changing tabs
+  };
+
+  const currentPackages = serviceType === "photography" ? photographyPackages : videographyPackages;
+  const selectedPkg = allPackages.find(pkg =>
+    pkg.name === selectedPackage && pkg.type === serviceType
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!selectedService) {
+
+    if (!selectedPackage) {
       toast({
-        title: "Please select a service",
-        description: "Choose the type of photography session you're interested in.",
+        title: "Please select a package",
+        description: "Choose a photography or videography package to continue.",
         variant: "destructive",
       });
       return;
@@ -55,7 +60,7 @@ const Booking = () => {
         client_name: formData.name,
         client_email: formData.email,
         client_phone: formData.phone,
-        service_type: selectedService,
+        service_type: `${serviceType}-${selectedPackage}`,
         preferred_date: formData.preferredDate || null,
         message: formData.message || null,
         status: "pending",
@@ -65,9 +70,9 @@ const Booking = () => {
 
       toast({
         title: "Booking Request Received!",
-        description: "We'll get back to you within 24 hours to confirm your session.",
+        description: "We'll get back to you within 24 hours to confirm your session and discuss details.",
       });
-      
+
       // Reset form
       setFormData({
         name: "",
@@ -76,12 +81,12 @@ const Booking = () => {
         preferredDate: "",
         message: "",
       });
-      setSelectedService("");
+      setSelectedPackage("");
     } catch (error: any) {
       console.error("Booking error:", error);
       toast({
         title: "Something went wrong",
-        description: "Please try again or contact us directly.",
+        description: "Please try again or contact us directly via phone or WhatsApp.",
         variant: "destructive",
       });
     } finally {
@@ -92,7 +97,7 @@ const Booking = () => {
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
-      
+
       {/* Hero */}
       <section className="pt-32 pb-16 bg-secondary">
         <div className="container mx-auto px-6 text-center">
@@ -100,50 +105,143 @@ const Booking = () => {
             Let's Create Together
           </p>
           <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-light text-foreground mb-6">
-            Book Your <span className="italic text-primary">Session</span>
+            Book Your <span className="italic text-primary">Package</span>
           </h1>
-          <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
             Fill out the form below and we'll get back to you within 24 hours to discuss your photography needs.
           </p>
+          <div className="flex justify-center">
+            <Link to="/pricing">
+              <Button variant="elegant" size="sm">
+                <Info className="w-4 h-4 mr-2" />
+                View Full Pricing Details
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* Booking Form */}
       <section className="py-16 bg-background">
         <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <form onSubmit={handleSubmit} className="space-y-12">
-              {/* Service Selection */}
+              {/* Package Selection */}
               <div>
                 <h2 className="font-display text-2xl text-foreground mb-6">
-                  Select Your Service
+                  Select Your Package
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {services.map((service) => (
-                    <button
-                      key={service.id}
-                      type="button"
-                      onClick={() => setSelectedService(service.id)}
-                      className={`p-6 rounded-lg border text-left transition-all duration-300 ${
-                        selectedService === service.id
-                          ? "border-primary bg-primary/10"
-                          : "border-border hover:border-primary/50"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-body text-sm font-medium text-foreground mb-1">
-                            {service.name}
-                          </h3>
-                          <p className="text-sm text-primary">{service.price}</p>
-                        </div>
-                        {selectedService === service.id && (
-                          <Check className="w-5 h-5 text-primary" />
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
+
+                <Tabs value={serviceType} onValueChange={handleTabChange} className="w-full mb-6">
+                  <TabsList className="grid w-full max-w-md grid-cols-2 mx-auto">
+                    <TabsTrigger value="photography" className="flex items-center gap-2">
+                      <Camera className="w-4 h-4" />
+                      Photography
+                    </TabsTrigger>
+                    <TabsTrigger value="videography" className="flex items-center gap-2">
+                      <Video className="w-4 h-4" />
+                      Videography
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="photography" className="mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {photographyPackages.map((pkg) => (
+                        <button
+                          key={pkg.name}
+                          type="button"
+                          onClick={() => setSelectedPackage(pkg.name)}
+                          className={`p-6 rounded-lg border text-left transition-all duration-300 ${
+                            selectedPackage === pkg.name
+                              ? "border-primary bg-primary/10 ring-2 ring-primary"
+                              : "border-border hover:border-primary/50"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h3 className="font-display text-xl text-foreground mb-1">
+                                {pkg.name}
+                              </h3>
+                              <p className="font-display text-2xl text-primary">{pkg.price}</p>
+                            </div>
+                            {selectedPackage === pkg.name && (
+                              <Check className="w-6 h-6 text-primary" />
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            {pkg.coverage.join(" • ")}
+                          </p>
+                          <ul className="space-y-1">
+                            {pkg.includes.slice(0, 3).map((item, idx) => (
+                              <li key={idx} className="text-xs text-muted-foreground flex items-start gap-2">
+                                <Check className="w-3 h-3 text-primary flex-shrink-0 mt-0.5" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                            {pkg.includes.length > 3 && (
+                              <li className="text-xs text-primary">
+                                +{pkg.includes.length - 3} more items
+                              </li>
+                            )}
+                          </ul>
+                        </button>
+                      ))}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="videography" className="mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {videographyPackages.map((pkg) => (
+                        <button
+                          key={pkg.name}
+                          type="button"
+                          onClick={() => setSelectedPackage(pkg.name)}
+                          className={`p-6 rounded-lg border text-left transition-all duration-300 ${
+                            selectedPackage === pkg.name
+                              ? "border-primary bg-primary/10 ring-2 ring-primary"
+                              : "border-border hover:border-primary/50"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h3 className="font-display text-xl text-foreground mb-1">
+                                {pkg.name}
+                              </h3>
+                              <p className="font-display text-2xl text-primary">{pkg.price}</p>
+                            </div>
+                            {selectedPackage === pkg.name && (
+                              <Check className="w-6 h-6 text-primary" />
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            {pkg.coverage.join(" • ")}
+                          </p>
+                          <ul className="space-y-1">
+                            {pkg.includes.map((item, idx) => (
+                              <li key={idx} className="text-xs text-muted-foreground flex items-start gap-2">
+                                <Check className="w-3 h-3 text-primary flex-shrink-0 mt-0.5" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </button>
+                      ))}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+
+                {selectedPkg && (
+                  <Alert className="bg-primary/5 border-primary/20">
+                    <Info className="w-4 h-4 text-primary" />
+                    <AlertDescription className="text-sm">
+                      You've selected <strong>{selectedPkg.name}</strong> ({selectedPkg.type}) at{" "}
+                      <strong>{selectedPkg.price}</strong>. Need add-ons or customization?{" "}
+                      <Link to="/pricing" className="text-primary underline">
+                        View full pricing
+                      </Link>
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
 
               {/* Contact Information */}
@@ -191,7 +289,7 @@ const Booking = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="preferredDate">Preferred Date</Label>
+                    <Label htmlFor="preferredDate">Preferred Event Date</Label>
                     <Input
                       id="preferredDate"
                       name="preferredDate"
@@ -218,8 +316,11 @@ const Booking = () => {
                     onChange={handleInputChange}
                     rows={5}
                     className="bg-card border-border resize-none"
-                    placeholder="Share any specific requirements, location preferences, or questions..."
+                    placeholder="Share any specific requirements, location preferences, add-ons you'd like, or questions..."
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Mention any extras you'd like to add (drone coverage, additional photographer, photobooks, etc.)
+                  </p>
                 </div>
               </div>
 
@@ -244,6 +345,10 @@ const Booking = () => {
                   )}
                 </Button>
               </div>
+
+              <p className="text-center text-sm text-muted-foreground">
+                By submitting this form, you agree to our booking terms. A 50% deposit is required to secure your date.
+              </p>
             </form>
           </div>
         </div>

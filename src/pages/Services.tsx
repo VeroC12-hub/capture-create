@@ -165,6 +165,34 @@ const Services = () => {
         </div>
       </section>
 
+      {/* Pricing CTA */}
+      <section className="py-24 bg-secondary">
+        <div className="container mx-auto px-6 text-center">
+          <p className="font-body text-sm tracking-[0.3em] uppercase text-primary mb-4">
+            Transparent Pricing
+          </p>
+          <h2 className="font-display text-3xl md:text-4xl text-foreground mb-6">
+            View Our Complete <span className="italic text-primary">Pricing</span>
+          </h2>
+          <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+            Explore our comprehensive photography and videography packages, including wedding coverage,
+            event services, and customizable add-ons. All prices in Ghana Cedis (GH₵).
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/pricing">
+              <Button variant="hero" size="xl">
+                View All Packages & Pricing
+              </Button>
+            </Link>
+            <Link to="/booking">
+              <Button variant="elegant" size="xl">
+                Book a Session
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <Footer />
     </main>
   );
