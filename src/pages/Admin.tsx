@@ -7,7 +7,6 @@ import { HomepageGalleryManager } from "@/components/admin/HomepageGalleryManage
 import { ClientGalleryManager } from "@/components/admin/ClientGalleryManager";
 import { BookingsManager } from "@/components/admin/BookingsManager";
 import { GoogleDriveConnect } from "@/components/admin/GoogleDriveConnect";
-import { useGoogleDrive } from "@/hooks/useGoogleDrive";
 import {
   Image as ImageIcon,
   FolderOpen,
@@ -19,23 +18,30 @@ import {
 } from "lucide-react";
 
 const Admin = () => {
-  const { user, isAdmin, isLoading, signOut } = useAuth();
+  const { user, session, isAdmin, isLoading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState("homepage");
   const [searchParams, setSearchParams] = useSearchParams();
-  const { handleCallback } = useGoogleDrive();
 
   // Handle Google OAuth callback
   useEffect(() => {
     const code = searchParams.get('code');
     const isGoogleCallback = searchParams.get('google_callback');
     
-    if (code && isGoogleCallback) {
-      handleCallback(code).then(() => {
-        // Clear URL params after handling
+    if (code && isGoogleCallback && session) {
+      const redirectUri = `${window.location.origin}/admin?google_callback=true`;
+      
+      fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-drive?action=callback&code=${encodeURIComponent(code)}&redirect_uri=${encodeURIComponent(redirectUri)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      ).then(() => {
         setSearchParams({});
       });
     }
-  }, [searchParams, handleCallback, setSearchParams]);
+  }, [searchParams, session, setSearchParams]);
 
   if (isLoading) {
     return (

@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
@@ -31,14 +30,6 @@ export const useGoogleDrive = () => {
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke('google-drive', {
-        body: null,
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      // Check via query param approach
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-drive?action=status`,
         {
@@ -55,6 +46,7 @@ export const useGoogleDrive = () => {
       }
     } catch (error) {
       console.error('Error checking Google Drive connection:', error);
+      setIsConnected(false);
     } finally {
       setIsLoading(false);
     }
