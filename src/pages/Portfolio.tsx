@@ -34,7 +34,7 @@ const Portfolio = () => {
       <Navbar />
       
       {/* Hero */}
-      <section className="pt-32 pb-16 bg-charcoal">
+      <section className="pt-32 pb-16 bg-secondary">
         <div className="container mx-auto px-6 text-center">
           <p className="font-body text-sm tracking-[0.3em] uppercase text-primary mb-4">
             Our Work

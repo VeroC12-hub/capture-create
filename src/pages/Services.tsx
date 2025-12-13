@@ -104,11 +104,11 @@ const Services = () => {
       <Navbar />
       
       {/* Hero */}
-      <section className="pt-32 pb-16 bg-charcoal relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
+      <section className="pt-32 pb-16 bg-secondary relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
           <img src={heroWedding} alt="" className="w-full h-full object-cover" />
         </div>
-        <div className="absolute inset-0 bg-charcoal/90" />
+        <div className="absolute inset-0 bg-secondary/95" />
         <div className="container mx-auto px-6 text-center relative z-10">
           <p className="font-body text-sm tracking-[0.3em] uppercase text-primary mb-4">
             What We Offer

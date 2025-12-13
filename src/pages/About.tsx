@@ -40,7 +40,7 @@ const About = () => {
       <Navbar />
       
       {/* Hero */}
-      <section className="pt-32 pb-16 bg-charcoal">
+      <section className="pt-32 pb-16 bg-secondary">
         <div className="container mx-auto px-6 text-center">
           <p className="font-body text-sm tracking-[0.3em] uppercase text-primary mb-4">
             Our Story
@@ -102,7 +102,7 @@ const About = () => {
       </section>
 
       {/* Values */}
-      <section className="py-24 bg-charcoal">
+      <section className="py-24 bg-secondary">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <p className="font-body text-sm tracking-[0.3em] uppercase text-primary mb-4">
