@@ -7,13 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Camera, Check } from "lucide-react";
+import { Calendar, Check } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const services = [
   { id: "wedding", name: "Wedding Photography", price: "From $2,500" },
   { id: "portrait", name: "Portrait Session", price: "From $300" },
   { id: "corporate", name: "Corporate & Headshots", price: "From $500" },
-  { id: "event", name: "Event Coverage", price: "From $800" },
+  { id: "events", name: "Event Coverage", price: "From $800" },
   { id: "product", name: "Product Photography", price: "From $200" },
   { id: "documentary", name: "Documentary", price: "Custom Quote" },
 ];
@@ -49,13 +50,24 @@ const Booking = () => {
 
     setIsSubmitting(true);
 
-    // Simulate form submission - In production, this would connect to your backend
-    setTimeout(() => {
+    try {
+      const { error } = await supabase.from("bookings").insert({
+        client_name: formData.name,
+        client_email: formData.email,
+        client_phone: formData.phone,
+        service_type: selectedService,
+        preferred_date: formData.preferredDate || null,
+        message: formData.message || null,
+        status: "pending",
+      });
+
+      if (error) throw error;
+
       toast({
         title: "Booking Request Received!",
         description: "We'll get back to you within 24 hours to confirm your session.",
       });
-      setIsSubmitting(false);
+      
       // Reset form
       setFormData({
         name: "",
@@ -65,7 +77,16 @@ const Booking = () => {
         message: "",
       });
       setSelectedService("");
-    }, 1500);
+    } catch (error: any) {
+      console.error("Booking error:", error);
+      toast({
+        title: "Something went wrong",
+        description: "Please try again or contact us directly.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -166,7 +187,7 @@ const Booking = () => {
                       onChange={handleInputChange}
                       required
                       className="bg-card border-border"
-                      placeholder="+1 (555) 000-0000"
+                      placeholder="+233 XX XXX XXXX"
                     />
                   </div>
                   <div className="space-y-2">
