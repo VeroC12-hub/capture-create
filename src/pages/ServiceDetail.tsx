@@ -1,8 +1,9 @@
 import { useParams, Link, Navigate } from "react-router-dom";
+import { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { Check, ArrowLeft, Calendar } from "lucide-react";
+import { Check, ArrowLeft, Calendar, X } from "lucide-react";
 
 import serviceWedding from "@/assets/service-wedding.jpg";
 import servicePortrait from "@/assets/service-portrait.jpg";
@@ -11,12 +12,41 @@ import serviceEvent from "@/assets/service-event.jpg";
 import serviceProduct from "@/assets/service-product.jpg";
 import serviceDocumentary from "@/assets/service-documentary.jpg";
 
+// Wedding gallery
+import weddingGallery1 from "@/assets/wedding-gallery-1.jpg";
+import weddingGallery2 from "@/assets/wedding-gallery-2.jpg";
+import weddingGallery3 from "@/assets/wedding-gallery-3.jpg";
+import weddingGallery4 from "@/assets/wedding-gallery-4.jpg";
+import weddingGallery5 from "@/assets/wedding-gallery-5.jpg";
+import weddingGallery6 from "@/assets/wedding-gallery-6.jpg";
+
+// Portrait gallery
+import portraitGallery1 from "@/assets/portrait-gallery-1.jpg";
+import portraitGallery2 from "@/assets/portrait-gallery-2.jpg";
+import portraitGallery3 from "@/assets/portrait-gallery-3.jpg";
+
+// Event gallery
+import eventGallery1 from "@/assets/event-gallery-1.jpg";
+import eventGallery2 from "@/assets/event-gallery-2.jpg";
+
+// Product gallery
+import productGallery1 from "@/assets/product-gallery-1.jpg";
+
 const servicesData = {
   wedding: {
     title: "Wedding Photography",
     tagline: "For the wildly in love",
     description: "Your love story deserves to be told beautifully. We capture every emotion, every tear of joy, and every precious moment of your special day with artistry and heart.",
     image: serviceWedding,
+    gallery: [
+      { src: weddingGallery1, caption: "The Ceremony" },
+      { src: weddingGallery2, caption: "Getting Ready" },
+      { src: weddingGallery3, caption: "First Dance" },
+      { src: weddingGallery4, caption: "The Details" },
+      { src: weddingGallery5, caption: "Bridal Party" },
+      { src: weddingGallery6, caption: "Golden Hour" },
+      { src: serviceWedding, caption: "Bride Portrait" },
+    ],
     features: [
       "Full-day coverage (8-12 hours)",
       "Second photographer included",
@@ -38,6 +68,12 @@ const servicesData = {
     tagline: "Reveal your authentic self",
     description: "Professional portraits that capture your unique personality and style. Perfect for individuals, couples, families, and professional headshots.",
     image: servicePortrait,
+    gallery: [
+      { src: servicePortrait, caption: "Studio Portrait" },
+      { src: portraitGallery1, caption: "Executive Headshot" },
+      { src: portraitGallery2, caption: "Family Session" },
+      { src: portraitGallery3, caption: "Couples Portrait" },
+    ],
     features: [
       "1-2 hour session",
       "Multiple outfit changes",
@@ -59,6 +95,11 @@ const servicesData = {
     tagline: "Elevate your brand image",
     description: "Polished corporate imagery that elevates your brand. From headshots to team photos and office environment shots, we deliver professional results.",
     image: serviceCorporate,
+    gallery: [
+      { src: serviceCorporate, caption: "Team Photo" },
+      { src: portraitGallery1, caption: "Executive Headshot" },
+      { src: eventGallery1, caption: "Conference Coverage" },
+    ],
     features: [
       "Professional headshots",
       "Team & group photos",
@@ -80,6 +121,12 @@ const servicesData = {
     tagline: "Every moment matters",
     description: "Every celebration tells a story. We document your events with candid, energetic photography that captures the atmosphere and emotions.",
     image: serviceEvent,
+    gallery: [
+      { src: serviceEvent, caption: "Celebration" },
+      { src: eventGallery1, caption: "Conference" },
+      { src: eventGallery2, caption: "Birthday Party" },
+      { src: weddingGallery3, caption: "Reception" },
+    ],
     features: [
       "Full event coverage",
       "Candid & posed shots",
@@ -101,6 +148,10 @@ const servicesData = {
     tagline: "Images that sell",
     description: "High-end product imagery that sells. Perfect for e-commerce, catalogs, and marketing materials. We make your products shine.",
     image: serviceProduct,
+    gallery: [
+      { src: serviceProduct, caption: "Beauty Products" },
+      { src: productGallery1, caption: "Luxury Watch" },
+    ],
     features: [
       "Studio or on-location",
       "Clean white backgrounds",
@@ -122,6 +173,10 @@ const servicesData = {
     tagline: "Stories worth telling",
     description: "Authentic storytelling through candid, journalistic imagery. Perfect for personal projects, publications, and capturing real life moments.",
     image: serviceDocumentary,
+    gallery: [
+      { src: serviceDocumentary, caption: "Street Life" },
+      { src: eventGallery2, caption: "Candid Moments" },
+    ],
     features: [
       "Storytelling approach",
       "Natural, unposed moments",
@@ -142,6 +197,7 @@ const servicesData = {
 
 const ServiceDetail = () => {
   const { serviceType } = useParams<{ serviceType: string }>();
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   
   if (!serviceType || !servicesData[serviceType as keyof typeof servicesData]) {
     return <Navigate to="/services" replace />;
@@ -188,6 +244,45 @@ const ServiceDetail = () => {
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
               {service.description}
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Gallery Grid */}
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-12">
+            <p className="font-body text-sm tracking-[0.3em] uppercase text-primary mb-4">
+              Our Work
+            </p>
+            <h2 className="font-display text-3xl md:text-4xl text-foreground">
+              Featured <span className="italic text-primary">Gallery</span>
+            </h2>
+          </div>
+          
+          {/* Masonry-style Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {service.gallery.map((item, index) => (
+              <div
+                key={index}
+                className={`group relative overflow-hidden rounded-lg cursor-pointer ${
+                  index === 0 ? "col-span-2 row-span-2" : ""
+                } ${index === 3 ? "col-span-2" : ""}`}
+                onClick={() => setSelectedImage(item.src)}
+              >
+                <div className={`relative ${index === 0 ? "aspect-square" : "aspect-[4/5]"}`}>
+                  <img
+                    src={item.src}
+                    alt={item.caption}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-background/0 group-hover:bg-background/30 transition-colors duration-300" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <p className="text-foreground font-display text-lg">{item.caption}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -281,6 +376,27 @@ const ServiceDetail = () => {
           </div>
         </div>
       </section>
+
+      {/* Lightbox */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 z-50 bg-background/95 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button 
+            className="absolute top-6 right-6 text-foreground hover:text-primary transition-colors"
+            onClick={() => setSelectedImage(null)}
+          >
+            <X className="w-8 h-8" />
+          </button>
+          <img
+            src={selectedImage}
+            alt="Gallery image"
+            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
 
       <Footer />
     </main>
