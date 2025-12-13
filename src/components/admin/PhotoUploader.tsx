@@ -1,8 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
+import { useGoogleDrive } from "@/hooks/useGoogleDrive";
+import { Upload, X, Image as ImageIcon, Loader2, FolderOpen, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
@@ -11,6 +12,8 @@ interface PhotoUploaderProps {
   category?: string;
   onUploadComplete: () => void;
   isHomepageGallery?: boolean;
+  clientName?: string;
+  packageType?: string;
 }
 
 interface UploadingFile {
@@ -25,10 +28,14 @@ export const PhotoUploader = ({
   category = "general",
   onUploadComplete,
   isHomepageGallery = false,
+  clientName,
+  packageType,
 }: PhotoUploaderProps) => {
   const { toast } = useToast();
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+  const { isConnected, uploadToDrive } = useGoogleDrive();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newFiles: UploadingFile[] = acceptedFiles.map((file) => ({
@@ -45,6 +52,22 @@ export const PhotoUploader = ({
     accept: { "image/*": [".jpeg", ".jpg", ".png", ".webp"] },
     multiple: true,
   });
+
+  const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const imageFiles = Array.from(files).filter((file) =>
+        file.type.startsWith("image/")
+      );
+      const newFiles: UploadingFile[] = imageFiles.map((file) => ({
+        file,
+        progress: 0,
+        status: "pending" as const,
+        preview: URL.createObjectURL(file),
+      }));
+      setUploadingFiles((prev) => [...prev, ...newFiles]);
+    }
+  };
 
   const removeFile = (index: number) => {
     setUploadingFiles((prev) => {
@@ -81,10 +104,21 @@ export const PhotoUploader = ({
         if (uploadError) throw uploadError;
 
         setUploadingFiles((prev) =>
+          prev.map((f, idx) => (idx === i ? { ...f, progress: 50 } : f))
+        );
+
+        if (isConnected) {
+          await uploadToDrive(file, {
+            clientName,
+            packageType,
+            category: isHomepageGallery ? "Homepage" : "Client Galleries",
+          });
+        }
+
+        setUploadingFiles((prev) =>
           prev.map((f, idx) => (idx === i ? { ...f, progress: 70 } : f))
         );
 
-        // Save to database
         if (isHomepageGallery) {
           const { error: dbError } = await supabase
             .from("homepage_gallery")
@@ -128,11 +162,10 @@ export const PhotoUploader = ({
     setIsUploading(false);
     toast({
       title: "Upload Complete",
-      description: `${uploadingFiles.length} photo(s) uploaded successfully.`,
+      description: `${uploadingFiles.length} photo(s) uploaded successfully.${isConnected ? " Also synced to Google Drive." : ""}`,
     });
     onUploadComplete();
     
-    // Clear completed files after a delay
     setTimeout(() => {
       setUploadingFiles((prev) => prev.filter((f) => f.status !== "complete"));
     }, 2000);
@@ -140,28 +173,51 @@ export const PhotoUploader = ({
 
   return (
     <div className="space-y-4">
-      <div
-        {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-          isDragActive
-            ? "border-primary bg-primary/5"
-            : "border-border hover:border-primary/50"
-        }`}
-      >
-        <input {...getInputProps()} />
-        <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-        {isDragActive ? (
-          <p className="text-primary font-medium">Drop photos here...</p>
-        ) : (
-          <div>
-            <p className="text-foreground font-medium mb-1">
-              Drag & drop photos here
-            </p>
-            <p className="text-muted-foreground text-sm">
-              or click to select files
-            </p>
-          </div>
-        )}
+      <div className="flex gap-2">
+        <div
+          {...getRootProps()}
+          className={`flex-1 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+            isDragActive
+              ? "border-primary bg-primary/5"
+              : "border-border hover:border-primary/50"
+          }`}
+        >
+          <input {...getInputProps()} />
+          <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+          {isDragActive ? (
+            <p className="text-primary font-medium">Drop photos here...</p>
+          ) : (
+            <div>
+              <p className="text-foreground font-medium mb-1">Drag & drop photos here</p>
+              <p className="text-muted-foreground text-sm">or click to select files</p>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Button
+            variant="outline"
+            onClick={() => folderInputRef.current?.click()}
+            className="h-auto flex-col py-4 px-6"
+          >
+            <FolderOpen className="w-6 h-6 mb-2" />
+            <span className="text-xs">Upload Folder</span>
+          </Button>
+          <input
+            ref={folderInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={handleFolderSelect}
+            {...({ webkitdirectory: "", directory: "" } as any)}
+          />
+          {isConnected && (
+            <div className="flex items-center gap-1 text-xs text-green-600">
+              <Cloud className="w-3 h-3" />
+              <span>Drive synced</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {uploadingFiles.length > 0 && (
@@ -170,11 +226,7 @@ export const PhotoUploader = ({
             <span className="text-sm text-muted-foreground">
               {uploadingFiles.length} file(s) selected
             </span>
-            <Button
-              onClick={uploadFiles}
-              disabled={isUploading}
-              className="bg-primary hover:bg-primary/90"
-            >
+            <Button onClick={uploadFiles} disabled={isUploading} className="bg-primary hover:bg-primary/90">
               {isUploading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -191,15 +243,8 @@ export const PhotoUploader = ({
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-h-64 overflow-y-auto">
             {uploadingFiles.map((uf, index) => (
-              <div
-                key={index}
-                className="relative bg-card rounded-lg overflow-hidden border border-border"
-              >
-                <img
-                  src={uf.preview}
-                  alt={uf.file.name}
-                  className="w-full h-24 object-cover"
-                />
+              <div key={index} className="relative bg-card rounded-lg overflow-hidden border border-border">
+                <img src={uf.preview} alt={uf.file.name} className="w-full h-24 object-cover" />
                 {uf.status === "pending" && (
                   <button
                     onClick={() => removeFile(index)}

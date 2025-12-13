@@ -1,11 +1,13 @@
-import { useState } from "react";
-import { Navigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Navigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HomepageGalleryManager } from "@/components/admin/HomepageGalleryManager";
 import { ClientGalleryManager } from "@/components/admin/ClientGalleryManager";
 import { BookingsManager } from "@/components/admin/BookingsManager";
+import { GoogleDriveConnect } from "@/components/admin/GoogleDriveConnect";
+import { useGoogleDrive } from "@/hooks/useGoogleDrive";
 import {
   Image as ImageIcon,
   FolderOpen,
@@ -13,11 +15,27 @@ import {
   LogOut,
   Home,
   Loader2,
+  Settings,
 } from "lucide-react";
 
 const Admin = () => {
   const { user, isAdmin, isLoading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState("homepage");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { handleCallback } = useGoogleDrive();
+
+  // Handle Google OAuth callback
+  useEffect(() => {
+    const code = searchParams.get('code');
+    const isGoogleCallback = searchParams.get('google_callback');
+    
+    if (code && isGoogleCallback) {
+      handleCallback(code).then(() => {
+        // Clear URL params after handling
+        setSearchParams({});
+      });
+    }
+  }, [searchParams, handleCallback, setSearchParams]);
 
   if (isLoading) {
     return (
@@ -75,7 +93,7 @@ const Admin = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 mb-8">
+          <TabsList className="grid w-full grid-cols-4 mb-8">
             <TabsTrigger value="homepage" className="flex items-center gap-2">
               <ImageIcon className="w-4 h-4" />
               <span className="hidden sm:inline">Homepage Gallery</span>
@@ -91,6 +109,11 @@ const Admin = () => {
               <span className="hidden sm:inline">Bookings</span>
               <span className="sm:hidden">Bookings</span>
             </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Settings</span>
+              <span className="sm:hidden">Settings</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="homepage">
@@ -103,6 +126,15 @@ const Admin = () => {
 
           <TabsContent value="bookings">
             <BookingsManager />
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <div className="space-y-6">
+              <div>
+                <h2 className="font-display text-xl mb-4">Integrations</h2>
+                <GoogleDriveConnect />
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </main>
