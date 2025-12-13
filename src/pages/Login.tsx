@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -8,21 +8,23 @@ import { useToast } from "@/hooks/use-toast";
 import { Lock, ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 
 const Login = () => {
-  const { signIn, user } = useAuth();
+  const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    fullName: "",
   });
 
-  // Redirect if already logged in
-  if (user) {
-    navigate("/admin");
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      navigate("/admin");
+    }
+  }, [user, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -32,20 +34,36 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await signIn(formData.email, formData.password);
-
-    if (error) {
-      toast({
-        title: "Login Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+    if (isSignUp) {
+      const { error } = await signUp(formData.email, formData.password, formData.fullName);
+      if (error) {
+        toast({
+          title: "Sign Up Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Account created!",
+          description: "You can now sign in.",
+        });
+        setIsSignUp(false);
+      }
     } else {
-      toast({
-        title: "Welcome back!",
-        description: "You have been signed in successfully.",
-      });
-      navigate("/admin");
+      const { error } = await signIn(formData.email, formData.password);
+      if (error) {
+        toast({
+          title: "Login Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Welcome back!",
+          description: "You have been signed in successfully.",
+        });
+        navigate("/admin");
+      }
     }
 
     setIsLoading(false);
@@ -68,14 +86,30 @@ const Login = () => {
               <Lock className="w-8 h-8 text-primary" />
             </div>
             <h1 className="font-display text-3xl text-foreground mb-2">
-              Admin <span className="italic text-primary">Login</span>
+              Admin <span className="italic text-primary">{isSignUp ? "Sign Up" : "Login"}</span>
             </h1>
             <p className="text-muted-foreground text-sm">
-              Sign in to manage your photography business
+              {isSignUp ? "Create your admin account" : "Sign in to manage your photography business"}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Full Name</Label>
+                <Input
+                  id="fullName"
+                  name="fullName"
+                  type="text"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  required={isSignUp}
+                  className="bg-background border-border"
+                  placeholder="Sam Blessing"
+                />
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
               <Input
@@ -121,13 +155,23 @@ const Login = () => {
               {isLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Signing In...
+                  {isSignUp ? "Creating Account..." : "Signing In..."}
                 </>
               ) : (
-                "Sign In"
+                isSignUp ? "Create Account" : "Sign In"
               )}
             </Button>
           </form>
+
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              {isSignUp ? "Already have an account? Sign in" : "Need an account? Sign up"}
+            </button>
+          </div>
         </div>
 
         <p className="text-center text-muted-foreground text-sm mt-8">
