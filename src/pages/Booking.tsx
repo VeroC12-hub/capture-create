@@ -111,10 +111,10 @@ const Booking = () => {
             Fill out the form below and we'll get back to you within 24 hours to discuss your photography needs.
           </p>
           <div className="flex justify-center">
-            <Link to="/pricing">
+            <Link to="/services">
               <Button variant="elegant" size="sm">
                 <Info className="w-4 h-4 mr-2" />
-                View Full Pricing Details
+                View All Services & Pricing
               </Button>
             </Link>
           </div>
@@ -236,8 +236,8 @@ const Booking = () => {
                     <AlertDescription className="text-sm">
                       You've selected <strong>{selectedPkg.name}</strong> ({selectedPkg.type}) at{" "}
                       <strong>{selectedPkg.price}</strong>. Need add-ons or customization?{" "}
-                      <Link to="/pricing" className="text-primary underline">
-                        View full pricing
+                      <Link to="/services" className="text-primary underline">
+                        View all services & extras
                       </Link>
                     </AlertDescription>
                   </Alert>
