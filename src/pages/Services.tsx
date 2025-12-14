@@ -3,474 +3,467 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Calendar, Star, Heart, PartyPopper, Building2, ArrowRight, Sparkles } from "lucide-react";
-import { photographyPackages, videographyPackages, extras } from "@/data/pricingData";
+import { Check, Calendar, X, Heart, PartyPopper, Building2, Camera, Video } from "lucide-react";
+import { photographyPackages, videographyPackages } from "@/data/pricingData";
 import { useSiteImage } from "@/hooks/useSiteImages";
 
-const ServiceHero = ({
+// Full-screen image lightbox
+const ImageLightbox = ({ imageKey, onClose }: { imageKey: string | null; onClose: () => void }) => {
+  const { imageUrl } = useSiteImage(imageKey || "");
+
+  if (!imageKey) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-background/98 flex items-center justify-center p-4 animate-fade-in"
+      onClick={onClose}
+    >
+      <button
+        className="absolute top-6 right-6 text-foreground hover:text-primary transition-colors"
+        onClick={onClose}
+      >
+        <X className="w-8 h-8" />
+      </button>
+      <img
+        src={imageUrl}
+        alt="Gallery"
+        className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>
+  );
+};
+
+// Large Gallery Grid Component
+const GalleryGrid = ({ imageKeys, columns = 3 }: { imageKeys: string[]; columns?: number }) => {
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const gridClass = columns === 4
+    ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+    : columns === 3
+    ? "grid-cols-2 md:grid-cols-3"
+    : "grid-cols-1 md:grid-cols-2";
+
+  return (
+    <>
+      <div className={`grid ${gridClass} gap-4`}>
+        {imageKeys.map((imageKey, idx) => (
+          <GalleryImage
+            key={idx}
+            imageKey={imageKey}
+            onClick={() => setSelectedImage(imageKey)}
+            isLarge={idx === 0 && columns === 3}
+          />
+        ))}
+      </div>
+      <ImageLightbox imageKey={selectedImage} onClose={() => setSelectedImage(null)} />
+    </>
+  );
+};
+
+// Gallery Image with hover effect
+const GalleryImage = ({
+  imageKey,
+  onClick,
+  isLarge = false
+}: {
+  imageKey: string;
+  onClick: () => void;
+  isLarge?: boolean;
+}) => {
+  const { imageUrl } = useSiteImage(imageKey);
+
+  return (
+    <div
+      className={`group relative overflow-hidden rounded-lg cursor-pointer ${
+        isLarge ? "md:col-span-2 md:row-span-2" : ""
+      }`}
+      onClick={onClick}
+    >
+      <div className={`relative ${isLarge ? "aspect-square" : "aspect-[4/3]"}`}>
+        <img
+          src={imageUrl}
+          alt="Gallery"
+          className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
+        />
+        <div className="absolute inset-0 bg-background/0 group-hover:bg-background/20 transition-all duration-300 flex items-center justify-center">
+          <Camera className="w-12 h-12 text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform scale-75 group-hover:scale-100" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Massive Hero with Multiple Images
+const HeroSection = ({
   title,
   subtitle,
-  description,
-  imageKeys,
-  icon: Icon
+  imageKeys
 }: {
   title: string;
   subtitle: string;
-  description: string;
   imageKeys: string[];
-  icon: any;
 }) => {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const { imageUrl } = useSiteImage(imageKeys[currentImageIndex]);
-
   return (
-    <section className="relative h-[60vh] min-h-[500px] overflow-hidden group">
-      {/* Background Image with Parallax Effect */}
-      <div className="absolute inset-0">
-        <img
-          src={imageUrl}
-          alt={title}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/30" />
+    <section className="relative min-h-screen py-32">
+      {/* Background Gallery - Large Images */}
+      <div className="absolute inset-0 grid grid-cols-2 md:grid-cols-3 gap-2 p-2">
+        {imageKeys.slice(0, 6).map((imageKey, idx) => {
+          const { imageUrl } = useSiteImage(imageKey);
+          return (
+            <div key={idx} className="relative overflow-hidden">
+              <img
+                src={imageUrl}
+                alt=""
+                className="w-full h-full object-cover"
+                style={{
+                  animation: `fadeIn 1s ease-out ${idx * 0.2}s both`
+                }}
+              />
+            </div>
+          );
+        })}
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-6 h-full flex items-end pb-16 relative z-10">
-        <div className="max-w-3xl">
-          <div className="w-16 h-16 rounded-full bg-primary/10 backdrop-blur-sm flex items-center justify-center mb-6 animate-fade-in">
-            <Icon className="w-8 h-8 text-primary" />
-          </div>
-          <p className="font-body text-sm tracking-[0.3em] uppercase text-primary mb-3 animate-fade-in">
+      <div className="container mx-auto px-6 relative z-10 flex items-center min-h-screen">
+        <div className="max-w-4xl">
+          <p className="font-body text-sm tracking-[0.3em] uppercase text-primary mb-4">
             {subtitle}
           </p>
-          <h2 className="font-display text-4xl md:text-5xl lg:text-6xl text-foreground mb-4 animate-fade-up">
+          <h1 className="font-display text-5xl md:text-6xl lg:text-8xl font-light text-foreground mb-8">
             {title}
-          </h2>
-          <p className="text-lg text-muted-foreground mb-6 max-w-2xl animate-fade-up">
-            {description}
-          </p>
-
-          {/* Image Navigation Dots */}
-          {imageKeys.length > 1 && (
-            <div className="flex gap-2 animate-fade-in">
-              {imageKeys.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentImageIndex(idx)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    idx === currentImageIndex
-                      ? "w-8 bg-primary"
-                      : "w-2 bg-primary/30 hover:bg-primary/50"
-                  }`}
-                />
-              ))}
-            </div>
-          )}
+          </h1>
+          <Link to="/booking">
+            <Button variant="hero" size="xl" className="text-lg">
+              <Calendar className="mr-2 w-5 h-5" />
+              Book Now
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
   );
 };
 
-const PackageCard = ({ pkg, isPopular, category }: { pkg: any; isPopular?: boolean; category: string }) => {
+// Compact Package Card
+const PackageCard = ({ pkg, type }: { pkg: any; type: string }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   return (
-    <Card className={`relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 ${
-      isPopular ? "border-primary border-2" : "border-border"
-    }`}>
-      {isPopular && (
-        <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 rounded-bl-lg z-10 flex items-center gap-1">
-          <Star className="w-3 h-3 fill-current" />
-          <span className="text-xs font-semibold">POPULAR</span>
+    <div className="bg-card border border-border rounded-lg overflow-hidden hover:border-primary transition-all duration-300">
+      <div className="p-6">
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <Badge variant="outline" className="mb-2">{type}</Badge>
+            <h3 className="font-display text-xl mb-1">{pkg.name}</h3>
+            <p className="font-display text-3xl text-primary">{pkg.price}</p>
+          </div>
         </div>
-      )}
 
-      {/* Decorative gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500" />
-
-      <CardHeader className="text-center pb-4 relative">
-        <div className="mb-3">
-          <Badge variant="outline" className="mb-2">{category}</Badge>
-        </div>
-        <CardTitle className="font-display text-2xl mb-2">{pkg.name}</CardTitle>
-        <div className="font-display text-4xl text-primary mb-2">{pkg.price}</div>
-        <CardDescription className="text-sm leading-relaxed">
+        <p className="text-sm text-muted-foreground mb-4">
           {pkg.coverage.join(" • ")}
-        </CardDescription>
-      </CardHeader>
+        </p>
 
-      <CardContent className="space-y-4 relative">
-        <div>
-          <h4 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-primary" />
-            What's Included:
-          </h4>
-          <ul className="space-y-2">
-            {pkg.includes.map((item: string, idx: number) => (
-              <li key={idx} className="flex items-start gap-2 text-sm">
-                <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {pkg.highlights && pkg.highlights.length > 0 && (
-          <div className="pt-4 border-t">
-            <div className="flex flex-wrap gap-2">
-              {pkg.highlights.map((highlight: string, idx: number) => (
-                <Badge key={idx} variant="secondary" className="text-xs">
-                  {highlight}
-                </Badge>
+        {isExpanded && (
+          <div className="mb-4 animate-fade-in">
+            <ul className="space-y-2">
+              {pkg.includes.map((item: string, idx: number) => (
+                <li key={idx} className="flex items-start gap-2 text-sm">
+                  <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span>{item}</span>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         )}
-      </CardContent>
 
-      <CardFooter className="relative">
-        <Link to="/booking" className="w-full">
+        <div className="flex gap-2">
           <Button
-            variant={isPopular ? "hero" : "elegant"}
-            className="w-full group"
-            size="lg"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex-1"
           >
-            <Calendar className="w-4 h-4 mr-2" />
-            Book This Package
-            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            {isExpanded ? "Hide" : "View"} Details
           </Button>
-        </Link>
-      </CardFooter>
-    </Card>
-  );
-};
-
-const EventServiceCard = ({ service }: { service: any }) => {
-  const { imageUrl } = useSiteImage(service.imageKey);
-
-  return (
-    <div className="group relative overflow-hidden rounded-xl bg-card border border-border hover:border-primary transition-all duration-500 hover:shadow-xl">
-      {/* Image */}
-      <div className="relative h-64 overflow-hidden">
-        <img
-          src={imageUrl}
-          alt={service.name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
-
-        {/* Price Badge */}
-        <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-4 py-2 rounded-lg font-display text-lg">
-          {service.price}
+          <Link to="/booking" className="flex-1">
+            <Button variant="default" size="sm" className="w-full">
+              Book
+            </Button>
+          </Link>
         </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-6">
-        <h3 className="font-display text-2xl text-foreground mb-2">{service.name}</h3>
-        <p className="text-muted-foreground text-sm mb-4">{service.description}</p>
-
-        <ul className="space-y-2 mb-6">
-          {service.includes.map((item: string, idx: number) => (
-            <li key={idx} className="flex items-start gap-2 text-sm">
-              <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-
-        <Link to="/booking">
-          <Button variant="elegant" className="w-full group">
-            Book Now
-            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-          </Button>
-        </Link>
       </div>
     </div>
   );
 };
 
 const Services = () => {
-  const eventServices = [
-    {
-      name: "Birthday & Anniversary",
-      price: "GH₵ 2,500",
-      description: "Celebrate life's special moments with vibrant, joyful photography",
-      imageKey: "service-event",
-      includes: [
-        "Full event coverage",
-        "150+ edited photos",
-        "Online gallery",
-        "Event highlights reel"
-      ]
-    },
-    {
-      name: "Naming Ceremony",
-      price: "GH₵ 2,000",
-      description: "Preserve the precious moments of welcoming your little one",
-      imageKey: "service-portrait",
-      includes: [
-        "Ceremony coverage",
-        "100+ edited photos",
-        "Family portraits",
-        "Digital delivery"
-      ]
-    },
-    {
-      name: "Festive Events",
-      price: "GH₵ 3,500",
-      description: "Capture the energy and excitement of your celebrations",
-      imageKey: "service-event",
-      includes: [
-        "Extended coverage",
-        "200+ edited photos",
-        "Multiple locations",
-        "Fast turnaround"
-      ]
-    }
-  ];
-
-  const professionalServices = [
-    {
-      name: "Corporate Events",
-      price: "GH₵ 2,200",
-      description: "Professional event documentation for your business",
-      imageKey: "service-corporate",
-      includes: [
-        "Event photography",
-        "Team photos",
-        "Venue shots",
-        "Same-day previews"
-      ]
-    },
-    {
-      name: "Headshots & Portraits",
-      price: "From GH₵ 500",
-      description: "Professional portraits for individuals and teams",
-      imageKey: "service-portrait",
-      includes: [
-        "Studio or location",
-        "Professional retouching",
-        "Multiple outfit options",
-        "LinkedIn-ready files"
-      ]
-    },
-    {
-      name: "Product Photography",
-      price: "From GH₵ 200",
-      description: "Make your products shine with professional imagery",
-      imageKey: "service-product",
-      includes: [
-        "Studio lighting",
-        "Multiple angles",
-        "White background",
-        "E-commerce ready"
-      ]
-    }
-  ];
-
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Page Hero */}
-      <section className="pt-32 pb-16 bg-gradient-to-b from-secondary to-background">
-        <div className="container mx-auto px-6 text-center">
-          <p className="font-body text-sm tracking-[0.3em] uppercase text-primary mb-4 animate-fade-in">
-            Our Services
-          </p>
-          <h1 className="font-display text-4xl md:text-5xl lg:text-7xl font-light text-foreground mb-6 animate-fade-up">
-            Capturing Life's <span className="italic text-primary">Beautiful Moments</span>
-          </h1>
-          <p className="font-body text-lg text-muted-foreground max-w-3xl mx-auto animate-fade-up">
-            From intimate celebrations to grand events, we're here to tell your story through stunning imagery.
-            Every package is designed to give you beautiful, lasting memories.
-          </p>
-        </div>
-      </section>
-
-      {/* WEDDINGS & CELEBRATIONS */}
-      <ServiceHero
-        title="Weddings & Celebrations"
+      {/* ========== WEDDINGS SECTION ========== */}
+      <HeroSection
+        title="Weddings"
         subtitle="For the wildly in love"
-        description="Your love story deserves to be told beautifully. We capture every emotion, every tear of joy, and every precious moment of your special day with artistry and heart."
-        imageKeys={["service-wedding", "wedding-gallery-1", "wedding-gallery-2"]}
-        icon={Heart}
+        imageKeys={[
+          "service-wedding",
+          "wedding-gallery-1",
+          "wedding-gallery-2",
+          "wedding-gallery-3",
+          "wedding-gallery-4",
+          "wedding-gallery-5"
+        ]}
       />
 
+      {/* Wedding Gallery Showcase */}
       <section className="py-24 bg-background">
-        <div className="container mx-auto px-6">
-          {/* Photography Packages */}
-          <div className="mb-20">
-            <div className="text-center mb-12">
-              <Badge className="mb-4">Photography Packages</Badge>
-              <h3 className="font-display text-3xl md:text-4xl text-foreground mb-4">
-                Wedding <span className="italic text-primary">Photography</span>
-              </h3>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Professional photography packages to capture every moment of your special day
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {photographyPackages.map((pkg, idx) => (
-                <PackageCard
-                  key={idx}
-                  pkg={pkg}
-                  category="Photography"
-                  isPopular={pkg.name === "One Day Gold"}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Videography Packages */}
-          <div>
-            <div className="text-center mb-12">
-              <Badge className="mb-4">Videography Packages</Badge>
-              <h3 className="font-display text-3xl md:text-4xl text-foreground mb-4">
-                Wedding <span className="italic text-primary">Videography</span>
-              </h3>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Relive your special day with cinematic wedding films
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {videographyPackages.map((pkg, idx) => (
-                <PackageCard
-                  key={idx}
-                  pkg={pkg}
-                  category="Videography"
-                  isPopular={pkg.name === "One Day Diamond"}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* EVENTS & MILESTONES */}
-      <ServiceHero
-        title="Events & Milestones"
-        subtitle="Every moment matters"
-        description="Life is made of beautiful moments worth celebrating. From birthdays to naming ceremonies, we document your joy with vibrant, heartfelt photography."
-        imageKeys={["service-event", "event-gallery-1", "event-gallery-2"]}
-        icon={PartyPopper}
-      />
-
-      <section className="py-24 bg-secondary">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h3 className="font-display text-3xl md:text-4xl text-foreground mb-4">
-              Celebration <span className="italic text-primary">Photography</span>
-            </h3>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Flat-rate pricing for life's special celebrations
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {eventServices.map((service, idx) => (
-              <EventServiceCard key={idx} service={service} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PROFESSIONAL SERVICES */}
-      <ServiceHero
-        title="Professional Services"
-        subtitle="Elevate your brand"
-        description="Polished, professional imagery for businesses and individuals. From corporate events to executive portraits, we deliver results that make an impact."
-        imageKeys={["service-corporate", "service-product", "portrait-gallery-1"]}
-        icon={Building2}
-      />
-
-      <section className="py-24 bg-background">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h3 className="font-display text-3xl md:text-4xl text-foreground mb-4">
-              Business <span className="italic text-primary">Photography</span>
-            </h3>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Professional imagery that elevates your brand
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {professionalServices.map((service, idx) => (
-              <EventServiceCard key={idx} service={service} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Extras Section */}
-      <section className="py-24 bg-secondary">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
-            <p className="font-body text-sm tracking-[0.3em] uppercase text-primary mb-4">
-              Enhance Your Package
-            </p>
-            <h3 className="font-display text-3xl md:text-4xl text-foreground mb-4">
-              Extras & <span className="italic text-primary">Add-ons</span>
-            </h3>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Customize your experience with additional services and premium products
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Heart className="w-8 h-8 text-primary" />
+              <h2 className="font-display text-4xl md:text-5xl">
+                Wedding <span className="italic text-primary">Memories</span>
+              </h2>
+            </div>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              Every love story is unique. Here's a glimpse of the beautiful moments we've captured.
             </p>
           </div>
 
-          <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {extras.flatMap(category =>
-              category.items.map((item, idx) => (
-                <div
-                  key={`${category.category}-${idx}`}
-                  className="bg-card border border-border rounded-lg p-4 hover:border-primary hover:shadow-lg transition-all duration-300"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-semibold text-foreground text-sm">{item.name}</h4>
-                    <span className="font-display text-primary whitespace-nowrap ml-2">
-                      {item.price}
-                    </span>
-                  </div>
-                  {item.description && (
-                    <p className="text-xs text-muted-foreground">{item.description}</p>
-                  )}
-                </div>
-              ))
-            )}
+          {/* Large Gallery */}
+          <GalleryGrid
+            imageKeys={[
+              "service-wedding",
+              "wedding-gallery-1",
+              "wedding-gallery-2",
+              "wedding-gallery-3",
+              "wedding-gallery-4",
+              "wedding-gallery-5",
+              "wedding-gallery-6",
+              "service-wedding",
+              "wedding-gallery-1"
+            ]}
+            columns={3}
+          />
+        </div>
+      </section>
+
+      {/* Wedding Packages - Compact */}
+      <section className="py-24 bg-secondary">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-12">
+            <h3 className="font-display text-3xl md:text-4xl mb-4">
+              Wedding <span className="italic text-primary">Packages</span>
+            </h3>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Choose the perfect package for your special day
+            </p>
+          </div>
+
+          <div className="max-w-6xl mx-auto">
+            {/* Photography */}
+            <div className="mb-12">
+              <div className="flex items-center gap-3 mb-6">
+                <Camera className="w-6 h-6 text-primary" />
+                <h4 className="font-display text-2xl">Photography</h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {photographyPackages.map((pkg, idx) => (
+                  <PackageCard key={idx} pkg={pkg} type="Photo" />
+                ))}
+              </div>
+            </div>
+
+            {/* Videography */}
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <Video className="w-6 h-6 text-primary" />
+                <h4 className="font-display text-2xl">Videography</h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {videographyPackages.map((pkg, idx) => (
+                  <PackageCard key={idx} pkg={pkg} type="Video" />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* ========== EVENTS SECTION ========== */}
+      <HeroSection
+        title="Events"
+        subtitle="Every moment matters"
+        imageKeys={[
+          "service-event",
+          "event-gallery-1",
+          "event-gallery-2",
+          "wedding-gallery-3",
+          "service-portrait",
+          "portrait-gallery-1"
+        ]}
+      />
+
+      {/* Events Gallery */}
       <section className="py-24 bg-background">
         <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto text-center bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-3xl p-12">
-            <h3 className="font-display text-3xl md:text-4xl text-foreground mb-4">
-              Ready to <span className="italic text-primary">Create Magic?</span>
-            </h3>
-            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Let's discuss your vision and create something beautiful together. Every story is unique,
-              and we're here to capture yours perfectly.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/booking">
-                <Button variant="hero" size="xl" className="group">
-                  <Calendar className="mr-2" />
-                  Book Your Session
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-              <Link to="/contact">
-                <Button variant="elegant" size="xl">
-                  Request Custom Quote
-                </Button>
-              </Link>
+          <div className="text-center mb-16">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <PartyPopper className="w-8 h-8 text-primary" />
+              <h2 className="font-display text-4xl md:text-5xl">
+                Celebration <span className="italic text-primary">Moments</span>
+              </h2>
             </div>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              Birthdays, naming ceremonies, anniversaries - we capture the joy in every celebration.
+            </p>
+          </div>
+
+          <GalleryGrid
+            imageKeys={[
+              "service-event",
+              "event-gallery-1",
+              "event-gallery-2",
+              "service-portrait",
+              "portrait-gallery-1",
+              "portrait-gallery-2",
+              "portrait-gallery-3",
+              "wedding-gallery-3"
+            ]}
+            columns={4}
+          />
+
+          {/* Event Pricing */}
+          <div className="mt-16 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { name: "Birthdays & Anniversaries", price: "GH₵ 2,500" },
+              { name: "Naming Ceremonies", price: "GH₵ 2,000" },
+              { name: "Festive Events", price: "GH₵ 3,500" }
+            ].map((event, idx) => (
+              <div key={idx} className="bg-card border border-border rounded-lg p-6 text-center hover:border-primary transition-colors">
+                <h3 className="font-display text-xl mb-2">{event.name}</h3>
+                <p className="font-display text-3xl text-primary mb-4">{event.price}</p>
+                <Link to="/booking">
+                  <Button variant="elegant" className="w-full">
+                    Book Now
+                  </Button>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ========== PROFESSIONAL SECTION ========== */}
+      <HeroSection
+        title="Professional"
+        subtitle="Elevate your brand"
+        imageKeys={[
+          "service-corporate",
+          "service-product",
+          "portrait-gallery-1",
+          "service-documentary",
+          "event-gallery-1",
+          "service-portrait"
+        ]}
+      />
+
+      {/* Professional Gallery */}
+      <section className="py-24 bg-background">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Building2 className="w-8 h-8 text-primary" />
+              <h2 className="font-display text-4xl md:text-5xl">
+                Business <span className="italic text-primary">Portfolio</span>
+              </h2>
+            </div>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              Corporate events, headshots, product photography - professional imagery that makes an impact.
+            </p>
+          </div>
+
+          <GalleryGrid
+            imageKeys={[
+              "service-corporate",
+              "service-product",
+              "portrait-gallery-1",
+              "service-documentary",
+              "event-gallery-1",
+              "service-portrait",
+              "portrait-gallery-2",
+              "portrait-gallery-3"
+            ]}
+            columns={4}
+          />
+
+          {/* Professional Pricing */}
+          <div className="mt-16 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { name: "Corporate Events", price: "GH₵ 2,200" },
+              { name: "Headshots & Portraits", price: "From GH₵ 500" },
+              { name: "Product Photography", price: "From GH₵ 200" }
+            ].map((service, idx) => (
+              <div key={idx} className="bg-card border border-border rounded-lg p-6 text-center hover:border-primary transition-colors">
+                <h3 className="font-display text-xl mb-2">{service.name}</h3>
+                <p className="font-display text-3xl text-primary mb-4">{service.price}</p>
+                <Link to="/booking">
+                  <Button variant="elegant" className="w-full">
+                    Book Now
+                  </Button>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA with Background Gallery */}
+      <section className="relative py-32 overflow-hidden">
+        <div className="absolute inset-0 grid grid-cols-4 gap-2 p-2 opacity-20">
+          {[
+            "service-wedding",
+            "service-event",
+            "service-corporate",
+            "service-portrait",
+            "wedding-gallery-1",
+            "event-gallery-1",
+            "portrait-gallery-1",
+            "service-product"
+          ].map((key, idx) => {
+            const { imageUrl } = useSiteImage(key);
+            return (
+              <div key={idx} className="aspect-square">
+                <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+              </div>
+            );
+          })}
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/95 to-background" />
+
+        <div className="container mx-auto px-6 relative z-10 text-center">
+          <h3 className="font-display text-4xl md:text-5xl lg:text-6xl mb-8">
+            Ready to <span className="italic text-primary">Create Magic?</span>
+          </h3>
+          <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
+            Let's capture your story. Every moment, every emotion, every beautiful detail.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <Link to="/booking">
+              <Button variant="hero" size="xl" className="text-lg px-12">
+                <Calendar className="mr-2" />
+                Book Your Session
+              </Button>
+            </Link>
+            <Link to="/portfolio">
+              <Button variant="elegant" size="xl" className="text-lg px-12">
+                View More Work
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
