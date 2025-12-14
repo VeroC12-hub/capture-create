@@ -127,15 +127,15 @@ const Footer = () => {
             <ul className="space-y-4 text-sm text-muted-foreground">
               <li className="flex items-center gap-3">
                 <Mail size={16} className="text-primary" />
-                hello@yourstudio.com
+                Slessing.studio20@gmail.com
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={16} className="text-primary" />
-                +1 (555) 123-4567
+                0543518185
               </li>
               <li className="flex items-start gap-3">
                 <MapPin size={16} className="text-primary mt-1" />
-                <span>123 Studio Lane, Photography District</span>
+                <span>Community 25, Dawhenya, Ghana</span>
               </li>
             </ul>
           </div>

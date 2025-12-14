@@ -177,7 +177,7 @@ const Contact = () => {
                     <h3 className="font-body text-sm uppercase tracking-widest text-foreground mb-1">
                       Email
                     </h3>
-                    <p className="text-muted-foreground">hello@yourstudio.com</p>
+                    <p className="text-muted-foreground">Slessing.studio20@gmail.com</p>
                   </div>
                 </div>
 
@@ -189,7 +189,7 @@ const Contact = () => {
                     <h3 className="font-body text-sm uppercase tracking-widest text-foreground mb-1">
                       Phone
                     </h3>
-                    <p className="text-muted-foreground">+1 (555) 123-4567</p>
+                    <p className="text-muted-foreground">0543518185</p>
                   </div>
                 </div>
 
@@ -202,9 +202,8 @@ const Contact = () => {
                       Studio Location
                     </h3>
                     <p className="text-muted-foreground">
-                      123 Studio Lane<br />
-                      Photography District<br />
-                      New York, NY 10001
+                      Community 25, Dawhenya<br />
+                      Ghana
                     </p>
                   </div>
                 </div>
