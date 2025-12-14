@@ -198,8 +198,8 @@ const GalleryImage = ({ imageKey, caption, isLarge, onClick }: { imageKey: strin
           alt={caption}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-background/0 group-hover:bg-background/30 transition-colors duration-300" />
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute inset-0 bg-background/0 group-hover:bg-background/10 transition-colors duration-300" />
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <p className="text-foreground font-display text-lg">{caption}</p>
         </div>
       </div>
@@ -237,7 +237,7 @@ const ServiceDetail = () => {
       <section className="relative h-[70vh] min-h-[500px] flex items-end">
         <div className="absolute inset-0">
           <HeroImage imageKey={service.heroImageKey} />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
         </div>
         
         <div className="container mx-auto px-6 pb-16 relative z-10">

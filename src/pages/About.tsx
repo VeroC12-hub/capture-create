@@ -53,7 +53,7 @@ const About = () => {
             alt="About our photography studio"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/50 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/30 to-background" />
         </div>
         <div className="container mx-auto px-6 text-center relative z-10">
           <p className="font-body text-sm tracking-[0.3em] uppercase text-primary mb-4">

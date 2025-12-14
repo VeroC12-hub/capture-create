@@ -57,7 +57,7 @@ const GallerySection = () => {
                 alt={image.alt}
                 className="w-full h-full object-cover image-hover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
               />
-              <div className="absolute inset-0 bg-background/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-background/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="absolute bottom-6 left-6 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500">
                 <span className="font-body text-sm uppercase tracking-widest text-primary">
                   {image.category}

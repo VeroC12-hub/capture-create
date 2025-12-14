@@ -124,7 +124,7 @@ const HeroSection = ({
             </div>
           );
         })}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/50 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/30 to-background" />
       </div>
 
       {/* Content */}
@@ -206,9 +206,10 @@ const Services = () => {
       <Navbar />
 
       {/* ========== WEDDINGS SECTION ========== */}
-      <HeroSection
-        title="Weddings"
-        subtitle="For the wildly in love"
+      <section id="weddings">
+        <HeroSection
+          title="Weddings"
+          subtitle="For the wildly in love"
         imageKeys={[
           "service-wedding",
           "wedding-gallery-1",
@@ -293,11 +294,13 @@ const Services = () => {
           </div>
         </div>
       </section>
+      </section>
 
       {/* ========== EVENTS SECTION ========== */}
-      <HeroSection
-        title="Events"
-        subtitle="Every moment matters"
+      <section id="events">
+        <HeroSection
+          title="Events"
+          subtitle="Every moment matters"
         imageKeys={[
           "service-event",
           "event-gallery-1",
@@ -357,11 +360,13 @@ const Services = () => {
           </div>
         </div>
       </section>
+      </section>
 
       {/* ========== PROFESSIONAL SECTION ========== */}
-      <HeroSection
-        title="Professional"
-        subtitle="Elevate your brand"
+      <section id="professional">
+        <HeroSection
+          title="Professional"
+          subtitle="Elevate your brand"
         imageKeys={[
           "service-corporate",
           "service-product",
@@ -421,6 +426,7 @@ const Services = () => {
           </div>
         </div>
       </section>
+      </section>
 
       {/* Final CTA with Background Gallery */}
       <section className="relative py-32 overflow-hidden">
@@ -443,7 +449,7 @@ const Services = () => {
             );
           })}
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/80 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/60 to-background" />
 
         <div className="container mx-auto px-6 relative z-10 text-center">
           <h3 className="font-display text-4xl md:text-5xl lg:text-6xl mb-8">

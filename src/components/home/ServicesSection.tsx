@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Camera, Heart, Building2, Package, PartyPopper, Film } from "lucide-react";
+import { Heart, PartyPopper, Building2 } from "lucide-react";
 import { useSiteImage } from "@/hooks/useSiteImages";
 
 const ServiceCard = ({ 
@@ -30,7 +30,7 @@ const ServiceCard = ({
       />
       
       {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
       
       {/* Content */}
       <div className="absolute inset-0 flex flex-col justify-end p-6">
@@ -51,45 +51,24 @@ const ServiceCard = ({
 const services = [
   {
     icon: Heart,
-    title: "Wedding",
-    description: "Timeless memories of your special day captured with elegance and emotion",
-    link: "/services/wedding",
+    title: "Weddings & Celebrations",
+    description: "For the wildly in love - capturing timeless memories of your special day with elegance and emotion. Full photography and videography packages available.",
+    link: "/services#weddings",
     imageKey: "service-wedding"
   },
   {
-    icon: Camera,
-    title: "Portrait",
-    description: "Professional portraits that reveal your unique personality and style",
-    link: "/services/portrait",
-    imageKey: "service-portrait"
-  },
-  {
-    icon: Building2,
-    title: "Corporate",
-    description: "Polished imagery for your brand, team, and professional needs",
-    link: "/services/corporate",
-    imageKey: "service-corporate"
-  },
-  {
     icon: PartyPopper,
-    title: "Events",
-    description: "Every celebration deserves to be documented beautifully",
-    link: "/services/events",
+    title: "Events & Milestones",
+    description: "Every moment matters - birthdays, anniversaries, naming ceremonies, and festive events captured with joy and authenticity.",
+    link: "/services#events",
     imageKey: "service-event"
   },
   {
-    icon: Package,
-    title: "Product",
-    description: "High-end product photography that sells your brand story",
-    link: "/services/product",
-    imageKey: "service-product"
-  },
-  {
-    icon: Film,
-    title: "Documentary",
-    description: "Authentic storytelling through candid, journalistic imagery",
-    link: "/services/documentary",
-    imageKey: "service-documentary"
+    icon: Building2,
+    title: "Professional Services",
+    description: "Elevate your brand - corporate events, headshots, and product photography that makes a powerful impact for your business.",
+    link: "/services#professional",
+    imageKey: "service-corporate"
   }
 ];
 
