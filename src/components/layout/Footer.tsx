@@ -1,9 +1,38 @@
 import { Link } from "react-router-dom";
-import { Instagram, Facebook, Mail, Phone, MapPin } from "lucide-react";
+import { Instagram, Facebook, Mail, Phone, MapPin, Calendar } from "lucide-react";
+import { useSiteImage } from "@/hooks/useSiteImages";
+import { Button } from "@/components/ui/button";
 
 const Footer = () => {
+  const footerImage1 = useSiteImage("wedding-gallery-1");
+  const footerImage2 = useSiteImage("portrait-gallery-1");
+  const footerImage3 = useSiteImage("event-gallery-1");
+
   return (
     <footer className="bg-secondary border-t border-border">
+      {/* Image Banner */}
+      <div className="relative h-48 overflow-hidden">
+        <div className="absolute inset-0 grid grid-cols-3 gap-2 p-2">
+          <img src={footerImage1.imageUrl} alt="" className="w-full h-full object-cover" />
+          <img src={footerImage2.imageUrl} alt="" className="w-full h-full object-cover" />
+          <img src={footerImage3.imageUrl} alt="" className="w-full h-full object-cover" />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-secondary via-secondary/80 to-transparent" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <h3 className="font-display text-3xl md:text-4xl text-foreground mb-4">
+              Let's Create <span className="italic text-primary">Magic Together</span>
+            </h3>
+            <Link to="/booking">
+              <Button variant="hero" size="lg">
+                <Calendar className="mr-2 w-4 h-4" />
+                Book Your Session
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+
       <div className="container mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* Brand */}
@@ -54,12 +83,39 @@ const Footer = () => {
             <h4 className="font-body text-sm uppercase tracking-widest text-foreground mb-6">
               Services
             </h4>
-            <ul className="space-y-3 text-sm text-muted-foreground">
-              <li>Wedding Photography</li>
-              <li>Portrait Sessions</li>
-              <li>Corporate Events</li>
-              <li>Product Photography</li>
-              <li>Documentary</li>
+            <ul className="space-y-3">
+              <li>
+                <Link
+                  to="/services#weddings"
+                  className="text-muted-foreground hover:text-primary text-sm transition-colors"
+                >
+                  Weddings & Celebrations
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/services#events"
+                  className="text-muted-foreground hover:text-primary text-sm transition-colors"
+                >
+                  Events & Milestones
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/services#professional"
+                  className="text-muted-foreground hover:text-primary text-sm transition-colors"
+                >
+                  Professional Services
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/booking"
+                  className="text-muted-foreground hover:text-primary text-sm transition-colors"
+                >
+                  Booking
+                </Link>
+              </li>
             </ul>
           </div>
 

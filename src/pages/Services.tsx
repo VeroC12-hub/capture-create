@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
@@ -201,6 +201,22 @@ const PackageCard = ({ pkg, type }: { pkg: any; type: string }) => {
 };
 
 const Services = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Scroll to section if hash exists in URL
+    if (location.hash) {
+      const id = location.hash.replace('#', '');
+      const element = document.getElementById(id);
+      if (element) {
+        // Small delay to ensure page is fully loaded
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      }
+    }
+  }, [location]);
+
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
