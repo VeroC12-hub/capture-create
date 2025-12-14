@@ -124,7 +124,7 @@ const HeroSection = ({
             </div>
           );
         })}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/50 to-background" />
       </div>
 
       {/* Content */}
@@ -443,7 +443,7 @@ const Services = () => {
             );
           })}
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/95 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/80 to-background" />
 
         <div className="container mx-auto px-6 relative z-10 text-center">
           <h3 className="font-display text-4xl md:text-5xl lg:text-6xl mb-8">

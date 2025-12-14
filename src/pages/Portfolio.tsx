@@ -15,6 +15,15 @@ const portfolioItemsData = [
   { imageKey: "portrait-gallery-1", category: "Portrait", title: "Executive Headshot" },
   { imageKey: "wedding-gallery-1", category: "Wedding", title: "Beach Wedding" },
   { imageKey: "service-corporate", category: "Corporate", title: "Board Meeting" },
+  { imageKey: "wedding-gallery-2", category: "Wedding", title: "Romantic Couple" },
+  { imageKey: "wedding-gallery-3", category: "Wedding", title: "Exchange of Vows" },
+  { imageKey: "wedding-gallery-4", category: "Wedding", title: "First Dance" },
+  { imageKey: "portrait-gallery-2", category: "Portrait", title: "Creative Portrait" },
+  { imageKey: "portrait-gallery-3", category: "Portrait", title: "Studio Portrait" },
+  { imageKey: "event-gallery-1", category: "Event", title: "Birthday Celebration" },
+  { imageKey: "event-gallery-2", category: "Event", title: "Corporate Gala" },
+  { imageKey: "service-event", category: "Event", title: "Special Moments" },
+  { imageKey: "service-portrait", category: "Portrait", title: "Professional Session" },
 ];
 
 const PortfolioItem = ({ imageKey, category, title }: { imageKey: string; category: string; title: string }) => {
@@ -27,7 +36,7 @@ const PortfolioItem = ({ imageKey, category, title }: { imageKey: string; catego
         alt={title}
         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="absolute inset-0 bg-background/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
         <p className="font-body text-xs uppercase tracking-widest text-primary mb-1">
           {category}

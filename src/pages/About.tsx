@@ -3,6 +3,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Award, Camera, Heart, Users } from "lucide-react";
+import { useSiteImage } from "@/hooks/useSiteImages";
 
 const stats = [
   { number: "500+", label: "Happy Clients" },
@@ -35,13 +36,26 @@ const values = [
 ];
 
 const About = () => {
+  const heroImage = useSiteImage("service-portrait");
+  const storyImage1 = useSiteImage("wedding-gallery-1");
+  const storyImage2 = useSiteImage("portrait-gallery-1");
+  const storyImage3 = useSiteImage("event-gallery-1");
+
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
-      
-      {/* Hero */}
-      <section className="pt-32 pb-16 bg-secondary">
-        <div className="container mx-auto px-6 text-center">
+
+      {/* Hero with Background Image */}
+      <section className="relative pt-32 pb-16 min-h-[60vh] flex items-center">
+        <div className="absolute inset-0 z-0">
+          <img
+            src={heroImage.imageUrl}
+            alt="About our photography studio"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/50 to-background" />
+        </div>
+        <div className="container mx-auto px-6 text-center relative z-10">
           <p className="font-body text-sm tracking-[0.3em] uppercase text-primary mb-4">
             Our Story
           </p>
@@ -72,10 +86,10 @@ const About = () => {
         </div>
       </section>
 
-      {/* Story */}
+      {/* Story with Images */}
       <section className="py-24 bg-background">
         <div className="container mx-auto px-6">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
               <div>
                 <h2 className="font-display text-3xl md:text-4xl text-foreground mb-6">
@@ -93,8 +107,16 @@ const About = () => {
                   </p>
                 </div>
               </div>
-              <div className="bg-card border border-border rounded-lg aspect-square flex items-center justify-center">
-                <Camera className="w-32 h-32 text-primary/20" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="relative overflow-hidden rounded-lg aspect-square">
+                  <img src={storyImage1.imageUrl} alt="Our work" className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
+                </div>
+                <div className="relative overflow-hidden rounded-lg aspect-square">
+                  <img src={storyImage2.imageUrl} alt="Our work" className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
+                </div>
+                <div className="col-span-2 relative overflow-hidden rounded-lg aspect-[2/1]">
+                  <img src={storyImage3.imageUrl} alt="Our work" className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
+                </div>
               </div>
             </div>
           </div>

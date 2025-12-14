@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Phone, MapPin, Send, Instagram, Facebook } from "lucide-react";
+import { useSiteImage } from "@/hooks/useSiteImages";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -17,6 +18,8 @@ const Contact = () => {
     subject: "",
     message: "",
   });
+  const heroImage = useSiteImage("service-corporate");
+  const contactImage = useSiteImage("portrait-gallery-2");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -45,9 +48,17 @@ const Contact = () => {
     <main className="min-h-screen bg-background">
       <Navbar />
       
-      {/* Hero */}
-      <section className="pt-32 pb-16 bg-secondary">
-        <div className="container mx-auto px-6 text-center">
+      {/* Hero with Background Image */}
+      <section className="relative pt-32 pb-16 min-h-[60vh] flex items-center">
+        <div className="absolute inset-0 z-0">
+          <img
+            src={heroImage.imageUrl}
+            alt="Contact our photography studio"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/50 to-background" />
+        </div>
+        <div className="container mx-auto px-6 text-center relative z-10">
           <p className="font-body text-sm tracking-[0.3em] uppercase text-primary mb-4">
             Get in Touch
           </p>
@@ -143,12 +154,20 @@ const Contact = () => {
               </form>
             </div>
 
-            {/* Info */}
+            {/* Info with Image */}
             <div>
+              <div className="relative overflow-hidden rounded-lg mb-8 aspect-[4/3]">
+                <img
+                  src={contactImage.imageUrl}
+                  alt="Photography studio"
+                  className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
+                />
+              </div>
+
               <h2 className="font-display text-3xl text-foreground mb-8">
                 Contact <span className="italic text-primary">Info</span>
               </h2>
-              
+
               <div className="space-y-8 mb-12">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
