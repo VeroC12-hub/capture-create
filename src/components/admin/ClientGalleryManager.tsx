@@ -37,10 +37,13 @@ import { Tables } from "@/integrations/supabase/types";
 type Gallery = Tables<"client_galleries">;
 type GalleryPhoto = Tables<"gallery_photos">;
 
+type Client = { id: string; email: string; full_name: string | null };
+
 export const ClientGalleryManager = () => {
   const { toast } = useToast();
   const [galleries, setGalleries] = useState<Gallery[]>([]);
   const [galleryPhotos, setGalleryPhotos] = useState<Record<string, GalleryPhoto[]>>({});
+  const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingGallery, setEditingGallery] = useState<Gallery | null>(null);
@@ -50,6 +53,7 @@ export const ClientGalleryManager = () => {
     event_date: "",
     password: "",
     is_public: false,
+    client_id: "",
   });
 
   const fetchGalleries = async () => {
@@ -67,6 +71,17 @@ export const ClientGalleryManager = () => {
     setIsLoading(false);
   };
 
+  const fetchClients = async () => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, email, full_name")
+      .order("email", { ascending: true });
+
+    if (!error && data) {
+      setClients(data);
+    }
+  };
+
   const fetchGalleryPhotos = async (galleryId: string) => {
     const { data, error } = await supabase
       .from("gallery_photos")
@@ -81,6 +96,7 @@ export const ClientGalleryManager = () => {
 
   useEffect(() => {
     fetchGalleries();
+    fetchClients();
   }, []);
 
   const getPublicUrl = (filePath: string) => {
@@ -95,6 +111,7 @@ export const ClientGalleryManager = () => {
       event_date: newGallery.event_date || null,
       password: newGallery.password || null,
       is_public: newGallery.is_public,
+      client_id: newGallery.client_id || null,
     });
 
     if (error) {
@@ -102,7 +119,7 @@ export const ClientGalleryManager = () => {
     } else {
       toast({ title: "Created", description: "Gallery created successfully." });
       setIsCreateOpen(false);
-      setNewGallery({ title: "", description: "", event_date: "", password: "", is_public: false });
+      setNewGallery({ title: "", description: "", event_date: "", password: "", is_public: false, client_id: "" });
       fetchGalleries();
     }
   };
@@ -116,6 +133,7 @@ export const ClientGalleryManager = () => {
         event_date: gallery.event_date,
         password: gallery.password,
         is_public: gallery.is_public,
+        client_id: gallery.client_id,
       })
       .eq("id", gallery.id);
 
@@ -209,6 +227,21 @@ export const ClientGalleryManager = () => {
                   value={newGallery.event_date}
                   onChange={(e) => setNewGallery({ ...newGallery, event_date: e.target.value })}
                 />
+              </div>
+              <div>
+                <Label>Assign to Client (Optional)</Label>
+                <select
+                  value={newGallery.client_id}
+                  onChange={(e) => setNewGallery({ ...newGallery, client_id: e.target.value })}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="">None (Not assigned)</option>
+                  {clients.map((client) => (
+                    <option key={client.id} value={client.id}>
+                      {client.full_name || client.email}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <Label>Password Protection</Label>
@@ -356,6 +389,21 @@ export const ClientGalleryManager = () => {
                   value={editingGallery.event_date || ""}
                   onChange={(e) => setEditingGallery({ ...editingGallery, event_date: e.target.value })}
                 />
+              </div>
+              <div>
+                <Label>Assign to Client</Label>
+                <select
+                  value={editingGallery.client_id || ""}
+                  onChange={(e) => setEditingGallery({ ...editingGallery, client_id: e.target.value || null })}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="">None (Not assigned)</option>
+                  {clients.map((client) => (
+                    <option key={client.id} value={client.id}>
+                      {client.full_name || client.email}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <Label>Password</Label>

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { Calendar, Check, Camera, Video, Info, Heart, PartyPopper, Building2, ArrowRight, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { photographyPackages, videographyPackages } from "@/data/pricingData";
@@ -55,6 +56,7 @@ const PROFESSIONAL_PACKAGES = [
 const Booking = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<number>(1);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -149,6 +151,7 @@ const Booking = () => {
         preferred_date: formData.preferredDate || null,
         message: formData.message || null,
         status: "pending",
+        user_id: user?.id || null, // Link to authenticated user if logged in
       });
 
       if (error) throw error;

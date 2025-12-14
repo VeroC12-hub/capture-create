@@ -1,134 +1,335 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Navigate, Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { Lock, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Loader2, Calendar, Image as ImageIcon, User, LogOut,
+  Home, FolderOpen, Mail, Phone, Lock
+} from "lucide-react";
+import { Tables } from "@/integrations/supabase/types";
+
+type Booking = Tables<"bookings">;
+type Gallery = Tables<"client_galleries">;
+
+const STATUS_OPTIONS = [
+  { value: "pending", label: "Pending", color: "bg-yellow-500" },
+  { value: "confirmed", label: "Confirmed", color: "bg-green-500" },
+  { value: "completed", label: "Completed", color: "bg-blue-500" },
+  { value: "cancelled", label: "Cancelled", color: "bg-red-500" },
+];
 
 const ClientPortal = () => {
-  const { toast } = useToast();
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const { user, session, isLoading: authLoading, isAdmin, signOut } = useAuth();
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [galleries, setGalleries] = useState<Gallery[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("bookings");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  useEffect(() => {
+    if (user && !authLoading) {
+      fetchUserData();
+    }
+  }, [user, authLoading]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const fetchUserData = async () => {
+    if (!user) return;
+
     setIsLoading(true);
 
-    setTimeout(() => {
-      toast({
-        title: "Login Feature Coming Soon",
-        description: "The client portal will be available once the backend is connected.",
-      });
-      setIsLoading(false);
-    }, 1000);
+    // Fetch user's bookings
+    const { data: bookingsData } = await supabase
+      .from("bookings")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    // Fetch user's galleries
+    const { data: galleriesData } = await supabase
+      .from("client_galleries")
+      .select("*")
+      .eq("client_id", user.id)
+      .order("created_at", { ascending: false });
+
+    setBookings(bookingsData || []);
+    setGalleries(galleriesData || []);
+    setIsLoading(false);
   };
 
-  return (
-    <main className="min-h-screen bg-background flex items-center justify-center">
-      <div className="w-full max-w-md px-6">
-        {/* Back Link */}
-        <Link
-          to="/"
-          className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors mb-8"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Home
-        </Link>
+  const getStatusBadge = (status: string) => {
+    const statusConfig = STATUS_OPTIONS.find((s) => s.value === status);
+    return (
+      <Badge variant="outline" className={`${statusConfig?.color} text-white border-0`}>
+        {statusConfig?.label || status}
+      </Badge>
+    );
+  };
 
-        {/* Login Card */}
-        <div className="bg-card border border-border rounded-lg p-8">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-8 h-8 text-primary" />
-            </div>
-            <h1 className="font-display text-3xl text-foreground mb-2">
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user || !session) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (isAdmin) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-card">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <h1 className="font-display text-2xl">
               Client <span className="italic text-primary">Portal</span>
             </h1>
-            <p className="text-muted-foreground text-sm">
-              Access your private photo galleries
-            </p>
           </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-                className="bg-background border-border"
-                placeholder="your@email.com"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  required
-                  className="bg-background border-border pr-12"
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              variant="hero"
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
-                  Signing In...
-                </>
-              ) : (
-                "Sign In"
-              )}
+          <div className="flex items-center gap-3">
+            <Link to="/">
+              <Button variant="outline" size="sm">
+                <Home className="w-4 h-4 mr-2" />
+                Home
+              </Button>
+            </Link>
+            <Button variant="ghost" size="sm" onClick={signOut}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
             </Button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <p className="text-muted-foreground text-sm">
-              Don't have access?{" "}
-              <Link to="/contact" className="text-primary hover:underline">
-                Contact us
-              </Link>
-            </p>
           </div>
         </div>
+      </header>
 
-        {/* Footer */}
-        <p className="text-center text-muted-foreground text-sm mt-8">
-          <span className="font-display italic text-primary">SamBlessing Photography</span> © {new Date().getFullYear()}
-        </p>
-      </div>
-    </main>
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8">
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-3 mb-8">
+              <TabsTrigger value="bookings" className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                <span className="hidden sm:inline">My Bookings</span>
+                <span className="sm:hidden">Bookings</span>
+              </TabsTrigger>
+              <TabsTrigger value="galleries" className="flex items-center gap-2">
+                <ImageIcon className="w-4 h-4" />
+                <span className="hidden sm:inline">My Galleries</span>
+                <span className="sm:hidden">Galleries</span>
+              </TabsTrigger>
+              <TabsTrigger value="profile" className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">Profile</span>
+                <span className="sm:hidden">Profile</span>
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Bookings Tab */}
+            <TabsContent value="bookings">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-display text-xl">My Booking Requests</h3>
+                  <Link to="/booking">
+                    <Button>
+                      <Calendar className="w-4 h-4 mr-2" />
+                      New Booking
+                    </Button>
+                  </Link>
+                </div>
+
+                {bookings.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-12 text-center">
+                      <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">No bookings yet</p>
+                      <Link to="/booking">
+                        <Button className="mt-4">Book a Session</Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-4">
+                    {bookings.map((booking) => (
+                      <Card key={booking.id}>
+                        <CardHeader>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle className="capitalize">
+                                {booking.service_type.replace(/-/g, " ")}
+                              </CardTitle>
+                              <CardDescription className="mt-2">
+                                Submitted on {new Date(booking.created_at).toLocaleDateString()}
+                              </CardDescription>
+                            </div>
+                            {getStatusBadge(booking.status)}
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <p className="text-muted-foreground">Preferred Date</p>
+                              <p className="font-medium">
+                                {booking.preferred_date
+                                  ? new Date(booking.preferred_date).toLocaleDateString()
+                                  : "Not specified"}
+                              </p>
+                            </div>
+                            {booking.message && (
+                              <div className="md:col-span-2">
+                                <p className="text-muted-foreground">Your Message</p>
+                                <p className="mt-1 text-sm bg-muted p-3 rounded">{booking.message}</p>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Galleries Tab */}
+            <TabsContent value="galleries">
+              <div className="space-y-4">
+                <h3 className="font-display text-xl">My Photo Galleries</h3>
+
+                {galleries.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-12 text-center">
+                      <FolderOpen className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">No galleries available yet</p>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Your galleries will appear here once your photos are ready
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {galleries.map((gallery) => (
+                      <Link key={gallery.id} to={`/gallery/${gallery.id}`}>
+                        <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                          <CardHeader>
+                            <div className="flex items-start justify-between">
+                              <CardTitle className="text-lg">{gallery.title}</CardTitle>
+                              {gallery.password && (
+                                <Lock className="w-4 h-4 text-muted-foreground" />
+                              )}
+                            </div>
+                            {gallery.event_date && (
+                              <CardDescription>
+                                {new Date(gallery.event_date).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                })}
+                              </CardDescription>
+                            )}
+                          </CardHeader>
+                          {gallery.description && (
+                            <CardContent>
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {gallery.description}
+                              </p>
+                            </CardContent>
+                          )}
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Profile Tab */}
+            <TabsContent value="profile">
+              <div className="max-w-2xl space-y-6">
+                <h3 className="font-display text-xl">My Profile</h3>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Account Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Mail className="w-5 h-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Email</p>
+                        <p className="font-medium">{user.email}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <User className="w-5 h-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Member Since</p>
+                        <p className="font-medium">
+                          {new Date(user.created_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Statistics</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-center p-4 bg-muted rounded-lg">
+                        <p className="text-3xl font-bold text-primary">{bookings.length}</p>
+                        <p className="text-sm text-muted-foreground mt-1">Total Bookings</p>
+                      </div>
+                      <div className="text-center p-4 bg-muted rounded-lg">
+                        <p className="text-3xl font-bold text-primary">{galleries.length}</p>
+                        <p className="text-sm text-muted-foreground mt-1">Photo Galleries</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Need Help?</CardTitle>
+                    <CardDescription>Get in touch with us</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Mail className="w-4 h-4 text-primary" />
+                      <a href="mailto:Slessing.studio20@gmail.com" className="text-sm hover:text-primary">
+                        Slessing.studio20@gmail.com
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-4 h-4 text-primary" />
+                      <a href="tel:0543518185" className="text-sm hover:text-primary">
+                        0543518185
+                      </a>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
+        )}
+      </main>
+    </div>
   );
 };
 
