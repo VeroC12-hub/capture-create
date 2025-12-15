@@ -24,9 +24,9 @@ const HeroSection = () => {
           <p className="font-body text-xs md:text-sm tracking-[0.3em] uppercase text-primary mb-4 animate-fade-up opacity-0" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
             SamBlessing Photography
           </p>
-          <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-medium text-white mb-6 leading-tight animate-fade-up opacity-0" style={{ animationDelay: "0.4s", animationFillMode: "forwards", textShadow: "0 2px 10px rgba(0,0,0,0.3)" }}>
+          <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-medium text-black mb-6 leading-tight animate-fade-up opacity-0" style={{ animationDelay: "0.4s", animationFillMode: "forwards", textShadow: "0 2px 4px rgba(255,255,255,0.5)" }}>
             Capturing
-            <span className="block italic text-primary">Priceless Moments</span>
+            <span className="block italic text-black">Priceless Moments</span>
           </h1>
           <div className="flex flex-col sm:flex-row gap-2 justify-center animate-fade-up opacity-0" style={{ animationDelay: "0.6s", animationFillMode: "forwards" }}>
             <Link to="/portfolio">
