@@ -83,7 +83,8 @@ const loadImageCache = async () => {
           const { data: urlData } = supabase.storage
             .from("photos")
             .getPublicUrl(img.file_path);
-          imageCache[img.image_key] = urlData.publicUrl;
+          // Add timestamp to prevent browser caching
+          imageCache[img.image_key] = `${urlData.publicUrl}?t=${Date.now()}`;
         }
       });
     }
@@ -144,7 +145,8 @@ export const useSiteImages = () => {
 
   const getPublicUrl = (filePath: string) => {
     const { data } = supabase.storage.from("photos").getPublicUrl(filePath);
-    return data.publicUrl;
+    // Add timestamp to prevent browser caching when image is updated
+    return `${data.publicUrl}?t=${Date.now()}`;
   };
 
   const updateImage = async (imageKey: string, filePath: string) => {
@@ -154,11 +156,11 @@ export const useSiteImages = () => {
       .eq("image_key", imageKey);
 
     if (!error) {
-      // Update cache
+      // Update cache with timestamp to bust browser cache
       const { data: urlData } = supabase.storage
         .from("photos")
         .getPublicUrl(filePath);
-      imageCache[imageKey] = urlData.publicUrl;
+      imageCache[imageKey] = `${urlData.publicUrl}?t=${Date.now()}`;
       await fetchImages();
     }
 
