@@ -34,8 +34,9 @@ export const PhotoUploader = ({
   const { toast } = useToast();
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isImportingFromDrive, setIsImportingFromDrive] = useState(false);
   const folderInputRef = useRef<HTMLInputElement>(null);
-  const { isConnected, uploadToDrive } = useGoogleDrive();
+  const { isConnected, uploadToDrive, getFileContent } = useGoogleDrive();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newFiles: UploadingFile[] = acceptedFiles.map((file) => ({
@@ -75,6 +76,40 @@ export const PhotoUploader = ({
       URL.revokeObjectURL(newFiles[index].preview);
       newFiles.splice(index, 1);
       return newFiles;
+    });
+  };
+
+  const handleGoogleDriveSelect = async (driveFiles: Array<{ id: string; name: string; mimeType: string }>) => {
+    setIsImportingFromDrive(true);
+    toast({
+      title: "Importing from Google Drive",
+      description: `Downloading ${driveFiles.length} file(s)...`,
+    });
+
+    const importedFiles: UploadingFile[] = [];
+
+    for (const driveFile of driveFiles) {
+      try {
+        const blob = await getFileContent(driveFile.id);
+        if (blob) {
+          const file = new File([blob], driveFile.name, { type: driveFile.mimeType });
+          importedFiles.push({
+            file,
+            progress: 0,
+            status: "pending",
+            preview: URL.createObjectURL(blob),
+          });
+        }
+      } catch (error) {
+        console.error(`Failed to download ${driveFile.name}:`, error);
+      }
+    }
+
+    setUploadingFiles((prev) => [...prev, ...importedFiles]);
+    setIsImportingFromDrive(false);
+    toast({
+      title: "Import Complete",
+      description: `${importedFiles.length} file(s) imported from Google Drive`,
     });
   };
 
@@ -199,6 +234,7 @@ export const PhotoUploader = ({
             variant="outline"
             onClick={() => folderInputRef.current?.click()}
             className="h-auto flex-col py-4 px-6"
+            disabled={isImportingFromDrive}
           >
             <FolderOpen className="w-6 h-6 mb-2" />
             <span className="text-xs">Upload Folder</span>
@@ -211,11 +247,33 @@ export const PhotoUploader = ({
             onChange={handleFolderSelect}
             {...({ webkitdirectory: "", directory: "" } as any)}
           />
+
           {isConnected && (
-            <div className="flex items-center gap-1 text-xs text-green-600">
-              <Cloud className="w-3 h-3" />
-              <span>Drive synced</span>
-            </div>
+            <>
+              <GoogleDrivePicker
+                onSelect={handleGoogleDriveSelect}
+                multiple={true}
+                allowFolderSelection={true}
+                trigger={
+                  <Button
+                    variant="outline"
+                    className="h-auto flex-col py-4 px-6"
+                    disabled={isImportingFromDrive}
+                  >
+                    {isImportingFromDrive ? (
+                      <Loader2 className="w-6 h-6 mb-2 animate-spin" />
+                    ) : (
+                      <Cloud className="w-6 h-6 mb-2" />
+                    )}
+                    <span className="text-xs">From Drive</span>
+                  </Button>
+                }
+              />
+              <div className="flex items-center gap-1 text-xs text-green-600 justify-center">
+                <Cloud className="w-3 h-3" />
+                <span>Connected</span>
+              </div>
+            </>
           )}
         </div>
       </div>

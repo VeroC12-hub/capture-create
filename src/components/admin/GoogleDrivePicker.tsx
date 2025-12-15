@@ -22,9 +22,10 @@ interface GoogleDrivePickerProps {
   onSelect: (files: DriveFile[]) => void;
   multiple?: boolean;
   trigger?: React.ReactNode;
+  allowFolderSelection?: boolean;
 }
 
-export const GoogleDrivePicker = ({ onSelect, multiple = true, trigger }: GoogleDrivePickerProps) => {
+export const GoogleDrivePicker = ({ onSelect, multiple = true, trigger, allowFolderSelection = true }: GoogleDrivePickerProps) => {
   const { isConnected, listFolders, listFiles } = useGoogleDrive();
   const [isOpen, setIsOpen] = useState(false);
   const [folders, setFolders] = useState<DriveFolder[]>([]);
@@ -32,7 +33,9 @@ export const GoogleDrivePicker = ({ onSelect, multiple = true, trigger }: Google
   const [currentFolder, setCurrentFolder] = useState<string | undefined>();
   const [folderStack, setFolderStack] = useState<{ id?: string; name: string }[]>([{ name: "My Drive" }]);
   const [selectedFiles, setSelectedFiles] = useState<DriveFile[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<DriveFolder | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingFolderFiles, setIsLoadingFolderFiles] = useState(false);
 
   const loadContent = async (folderId?: string) => {
     setIsLoading(true);
@@ -82,10 +85,24 @@ export const GoogleDrivePicker = ({ onSelect, multiple = true, trigger }: Google
     }
   };
 
+  const selectEntireFolder = async (folder: DriveFolder) => {
+    setSelectedFolder(folder);
+    setIsLoadingFolderFiles(true);
+    try {
+      const folderFiles = await listFiles(folder.id);
+      setSelectedFiles(folderFiles);
+    } catch (error) {
+      console.error("Error loading folder files:", error);
+    } finally {
+      setIsLoadingFolderFiles(false);
+    }
+  };
+
   const handleConfirm = () => {
     onSelect(selectedFiles);
     setIsOpen(false);
     setSelectedFiles([]);
+    setSelectedFolder(null);
   };
 
   if (!isConnected) {
@@ -133,18 +150,48 @@ export const GoogleDrivePicker = ({ onSelect, multiple = true, trigger }: Google
               {/* Folders */}
               {folders.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-medium mb-2">Folders</h4>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-medium">Folders</h4>
+                    {allowFolderSelection && (
+                      <p className="text-xs text-muted-foreground">Click to browse • Right-click to import all</p>
+                    )}
+                  </div>
                   <div className="grid grid-cols-3 gap-2">
-                    {folders.map((folder) => (
-                      <button
-                        key={folder.id}
-                        onClick={() => navigateToFolder(folder)}
-                        className="flex items-center gap-2 p-3 rounded-lg border hover:bg-accent transition-colors text-left"
-                      >
-                        <Folder className="w-5 h-5 text-primary" />
-                        <span className="text-sm truncate">{folder.name}</span>
-                      </button>
-                    ))}
+                    {folders.map((folder) => {
+                      const isFolderSelected = selectedFolder?.id === folder.id;
+                      return (
+                        <div
+                          key={folder.id}
+                          className={cn(
+                            "relative rounded-lg border transition-all",
+                            isFolderSelected && "ring-2 ring-primary border-primary"
+                          )}
+                        >
+                          <button
+                            onClick={() => navigateToFolder(folder)}
+                            onContextMenu={(e) => {
+                              if (allowFolderSelection) {
+                                e.preventDefault();
+                                selectEntireFolder(folder);
+                              }
+                            }}
+                            className="w-full flex items-center gap-2 p-3 hover:bg-accent transition-colors text-left"
+                          >
+                            <Folder className={cn("w-5 h-5", isFolderSelected ? "text-primary" : "text-primary")} />
+                            <span className="text-sm truncate flex-1">{folder.name}</span>
+                          </button>
+                          {allowFolderSelection && (
+                            <button
+                              onClick={() => selectEntireFolder(folder)}
+                              className="absolute top-1 right-1 p-1.5 rounded bg-primary/10 hover:bg-primary/20 transition-colors"
+                              title="Import all photos from this folder"
+                            >
+                              <Check className="w-3 h-3 text-primary" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -202,15 +249,25 @@ export const GoogleDrivePicker = ({ onSelect, multiple = true, trigger }: Google
 
         {/* Actions */}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">
-            {selectedFiles.length} file(s) selected
-          </span>
+          <div className="text-sm text-muted-foreground">
+            {isLoadingFolderFiles ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Loading folder files...
+              </span>
+            ) : (
+              <>
+                {selectedFiles.length} file(s) selected
+                {selectedFolder && <span className="ml-2 text-primary">from "{selectedFolder.name}"</span>}
+              </>
+            )}
+          </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setIsOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleConfirm} disabled={selectedFiles.length === 0}>
-              Select Files
+            <Button onClick={handleConfirm} disabled={selectedFiles.length === 0 || isLoadingFolderFiles}>
+              Import {selectedFiles.length} File(s)
             </Button>
           </div>
         </div>
