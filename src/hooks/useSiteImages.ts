@@ -63,13 +63,34 @@ interface SiteImage {
   description: string | null;
 }
 
-// Global cache for site images
-let imageCache: Record<string, string> = {};
-let cacheLoaded = false;
+// Global cache for site images with localStorage persistence
+const CACHE_KEY = 'site_images_cache';
+const CACHE_VERSION_KEY = 'site_images_cache_version';
+
+// Load cache from localStorage on initialization
+const loadCacheFromStorage = (): Record<string, string> => {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    return cached ? JSON.parse(cached) : {};
+  } catch {
+    return {};
+  }
+};
+
+let imageCache: Record<string, string> = loadCacheFromStorage();
+let cacheLoaded = Object.keys(imageCache).length > 0;
 let loadingPromise: Promise<void> | null = null;
 
+const saveCacheToStorage = () => {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(imageCache));
+    localStorage.setItem(CACHE_VERSION_KEY, Date.now().toString());
+  } catch (error) {
+    console.error('Failed to save image cache to localStorage:', error);
+  }
+};
+
 const loadImageCache = async () => {
-  if (cacheLoaded) return;
   if (loadingPromise) return loadingPromise;
 
   loadingPromise = (async () => {
@@ -78,15 +99,18 @@ const loadImageCache = async () => {
       .select("image_key, file_path");
 
     if (data) {
+      const timestamp = Date.now();
       data.forEach((img) => {
         if (img.file_path) {
           const { data: urlData } = supabase.storage
             .from("photos")
             .getPublicUrl(img.file_path);
           // Add timestamp to prevent browser caching
-          imageCache[img.image_key] = `${urlData.publicUrl}?t=${Date.now()}`;
+          imageCache[img.image_key] = `${urlData.publicUrl}?t=${timestamp}`;
         }
       });
+      // Save to localStorage for instant loading on next visit
+      saveCacheToStorage();
     }
     cacheLoaded = true;
   })();
@@ -161,6 +185,8 @@ export const useSiteImages = () => {
         .from("photos")
         .getPublicUrl(filePath);
       imageCache[imageKey] = `${urlData.publicUrl}?t=${Date.now()}`;
+      // Save updated cache to localStorage
+      saveCacheToStorage();
       await fetchImages();
     }
 
