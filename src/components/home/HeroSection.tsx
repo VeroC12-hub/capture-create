@@ -20,22 +20,22 @@ const HeroSection = () => {
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 text-center">
-        <div className="max-w-4xl mx-auto">
-          <p className="font-body text-sm md:text-base tracking-[0.3em] uppercase text-primary mb-6 animate-fade-up opacity-0" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
+        <div className="max-w-2xl mx-auto">
+          <p className="font-body text-xs md:text-sm tracking-[0.3em] uppercase text-primary mb-4 animate-fade-up opacity-0" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
             SamBlessing Photography
           </p>
-          <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-light text-foreground mb-12 leading-tight animate-fade-up opacity-0" style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}>
+          <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-light text-foreground mb-6 leading-tight animate-fade-up opacity-0" style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}>
             Capturing
             <span className="block italic text-primary">Your Story</span>
           </h1>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-up opacity-0" style={{ animationDelay: "0.6s", animationFillMode: "forwards" }}>
+          <div className="flex flex-col sm:flex-row gap-2 justify-center animate-fade-up opacity-0" style={{ animationDelay: "0.6s", animationFillMode: "forwards" }}>
             <Link to="/portfolio">
-              <Button variant="hero" size="xl">
+              <Button variant="hero" size="sm" className="text-xs">
                 View Portfolio
               </Button>
             </Link>
             <Link to="/booking">
-              <Button variant="gold" size="xl">
+              <Button variant="gold" size="sm" className="text-xs">
                 Book a Session
               </Button>
             </Link>
