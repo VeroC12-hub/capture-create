@@ -40,11 +40,11 @@ const ClientPortal = () => {
 
     setIsLoading(true);
 
-    // Fetch user's bookings
+    // Fetch user's bookings by email
     const { data: bookingsData } = await supabase
       .from("bookings")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("client_email", user.email)
       .order("created_at", { ascending: false });
 
     // Fetch user's galleries
