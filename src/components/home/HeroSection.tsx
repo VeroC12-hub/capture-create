@@ -21,7 +21,7 @@ const HeroSection = () => {
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 text-center">
         <div className="max-w-2xl mx-auto">
-          <p className="font-body text-xs md:text-sm tracking-[0.3em] uppercase text-primary mb-4 animate-fade-up opacity-0" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
+          <p className="font-display text-lg md:text-xl font-medium text-black mb-3 tracking-wide animate-fade-up opacity-0" style={{ animationDelay: "0.2s", animationFillMode: "forwards", textShadow: "0 2px 4px rgba(255,255,255,0.5)" }}>
             SamBlessing Photography
           </p>
           <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-medium text-black mb-6 leading-tight animate-fade-up opacity-0" style={{ animationDelay: "0.4s", animationFillMode: "forwards", textShadow: "0 2px 4px rgba(255,255,255,0.5)" }}>
