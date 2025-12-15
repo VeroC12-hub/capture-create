@@ -3,6 +3,7 @@ import { useDropzone } from "react-dropzone";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useGoogleDrive } from "@/hooks/useGoogleDrive";
+import { GoogleDrivePicker } from "@/components/admin/GoogleDrivePicker";
 import { Upload, X, Image as ImageIcon, Loader2, FolderOpen, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
