@@ -7,6 +7,7 @@ import { HomepageGalleryManager } from "@/components/admin/HomepageGalleryManage
 import { ClientGalleryManager } from "@/components/admin/ClientGalleryManager";
 import { BookingsManager } from "@/components/admin/BookingsManager";
 import { GoogleDriveConnect } from "@/components/admin/GoogleDriveConnect";
+import { DriveStorageManager } from "@/components/admin/DriveStorageManager";
 import SiteImagesManager from "@/components/admin/SiteImagesManager";
 import {
   Image as ImageIcon,
@@ -17,6 +18,7 @@ import {
   Loader2,
   Settings,
   Images,
+  Cloud,
 } from "lucide-react";
 
 const Admin = () => {
@@ -101,7 +103,7 @@ const Admin = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5 mb-8">
+          <TabsList className="grid w-full grid-cols-6 mb-8">
             <TabsTrigger value="site-images" className="flex items-center gap-2">
               <Images className="w-4 h-4" />
               <span className="hidden sm:inline">Site Images</span>
@@ -116,6 +118,11 @@ const Admin = () => {
               <FolderOpen className="w-4 h-4" />
               <span className="hidden sm:inline">Client Galleries</span>
               <span className="sm:hidden">Galleries</span>
+            </TabsTrigger>
+            <TabsTrigger value="drive-storage" className="flex items-center gap-2">
+              <Cloud className="w-4 h-4" />
+              <span className="hidden sm:inline">Drive Storage</span>
+              <span className="sm:hidden">Drive</span>
             </TabsTrigger>
             <TabsTrigger value="bookings" className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
@@ -139,6 +146,10 @@ const Admin = () => {
 
           <TabsContent value="galleries">
             <ClientGalleryManager />
+          </TabsContent>
+
+          <TabsContent value="drive-storage">
+            <DriveStorageManager />
           </TabsContent>
 
           <TabsContent value="bookings">
