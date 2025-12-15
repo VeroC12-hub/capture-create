@@ -530,109 +530,107 @@ export const ClientGalleryManager = () => {
 
       {/* Share Gallery Dialog */}
       <Dialog open={!!sharingGallery} onOpenChange={() => setSharingGallery(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Share Gallery - {sharingGallery?.title}</DialogTitle>
+            <DialogTitle className="text-lg">Share Gallery</DialogTitle>
           </DialogHeader>
           {sharingGallery && (
-            <div className="space-y-6">
-              {/* Gallery Info */}
-              <div className="bg-muted p-4 rounded-lg space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Gallery Link:</span>
-                  <Button size="sm" variant="ghost" onClick={() => copyGalleryLink(sharingGallery)}>
-                    <Copy className="w-3 h-3 mr-1" />
-                    Copy
+            <div className="space-y-4">
+              {/* Gallery Info Card */}
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Gallery</p>
+                  <p className="font-medium">{sharingGallery.title}</p>
+                </div>
+
+                {sharingGallery.client_id && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Client</p>
+                    <p className="text-sm">{getClientName(sharingGallery)}</p>
+                    {getClientEmail(sharingGallery) && (
+                      <p className="text-xs text-muted-foreground">{getClientEmail(sharingGallery)}</p>
+                    )}
+                  </div>
+                )}
+
+                <div className="p-3 bg-muted rounded-lg">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <p className="text-xs text-muted-foreground">Gallery Link</p>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => copyGalleryLink(sharingGallery)}
+                      className="h-6 px-2"
+                    >
+                      <Copy className="w-3 h-3 mr-1" />
+                      <span className="text-xs">Copy</span>
+                    </Button>
+                  </div>
+                  <p className="text-xs font-mono bg-background px-2 py-1 rounded break-all">
+                    {window.location.origin}/gallery/{sharingGallery.id}
+                  </p>
+                  {sharingGallery.password && (
+                    <div className="mt-2 pt-2 border-t border-border">
+                      <p className="text-xs text-muted-foreground">Password</p>
+                      <p className="text-sm font-medium">{sharingGallery.password}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Share Actions */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Quick Share</p>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-col h-auto py-3"
+                    onClick={() => openEmailClient(sharingGallery)}
+                    disabled={!sharingGallery.client_id || !getClientEmail(sharingGallery)}
+                  >
+                    <Mail className="w-5 h-5 mb-1" />
+                    <span className="text-xs">Email</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="flex-col h-auto py-3"
+                    onClick={() => openWhatsApp(sharingGallery)}
+                  >
+                    <MessageCircle className="w-5 h-5 mb-1" />
+                    <span className="text-xs">WhatsApp</span>
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="flex-col h-auto py-3"
+                    onClick={() => copyShareMessage(sharingGallery)}
+                  >
+                    <Copy className="w-5 h-5 mb-1" />
+                    <span className="text-xs">Copy</span>
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground break-all">
-                  {window.location.origin}/gallery/{sharingGallery.id}
-                </p>
-                {sharingGallery.password && (
-                  <div className="pt-2 border-t border-border mt-2">
-                    <span className="text-sm font-medium">Password: </span>
-                    <span className="text-sm">{sharingGallery.password}</span>
-                  </div>
-                )}
-                {sharingGallery.client_id && (
-                  <div className="pt-2 border-t border-border mt-2">
-                    <span className="text-sm font-medium">Assigned to: </span>
-                    <span className="text-sm">{getClientName(sharingGallery)}</span>
-                  </div>
-                )}
               </div>
 
-              {/* Share Options */}
-              <div className="space-y-3">
-                <h4 className="font-medium text-sm">Share via:</h4>
-
-                {/* Email Option */}
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => openEmailClient(sharingGallery)}
-                  disabled={!sharingGallery.client_id || !getClientEmail(sharingGallery)}
-                >
-                  <Mail className="w-4 h-4 mr-3" />
-                  <div className="text-left flex-1">
-                    <div className="font-medium">Send Email</div>
-                    <div className="text-xs text-muted-foreground">
-                      {sharingGallery.client_id && getClientEmail(sharingGallery)
-                        ? `Opens email to ${getClientEmail(sharingGallery)}`
-                        : "Assign client first to enable"}
-                    </div>
-                  </div>
-                </Button>
-
-                {/* WhatsApp Option */}
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => openWhatsApp(sharingGallery)}
-                >
-                  <MessageCircle className="w-4 h-4 mr-3" />
-                  <div className="text-left flex-1">
-                    <div className="font-medium">Share via WhatsApp</div>
-                    <div className="text-xs text-muted-foreground">
-                      Opens WhatsApp with pre-filled message
-                    </div>
-                  </div>
-                </Button>
-
-                {/* Copy Message Option */}
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => copyShareMessage(sharingGallery)}
-                >
-                  <Copy className="w-4 h-4 mr-3" />
-                  <div className="text-left flex-1">
-                    <div className="font-medium">Copy Share Message</div>
-                    <div className="text-xs text-muted-foreground">
-                      Copy formatted message with link & password
-                    </div>
-                  </div>
-                </Button>
-              </div>
-
-              {/* Preview Message */}
-              <div className="bg-muted/50 p-4 rounded-lg border border-border">
-                <p className="text-xs font-medium mb-2">Message Preview:</p>
-                <div className="text-xs text-muted-foreground whitespace-pre-line">
-                  Hi {getClientName(sharingGallery)},
-                  {'\n\n'}
-                  Your photo gallery "{sharingGallery.title}" is ready! 📸
-                  {'\n\n'}
-                  View your photos here:
-                  {'\n'}
-                  {window.location.origin}/gallery/{sharingGallery.id}
-                  {sharingGallery.password && `\n\nPassword: ${sharingGallery.password}`}
-                  {'\n\n'}
-                  Best regards,
-                  {'\n'}
-                  SamBlessing Photography
+              {/* Message Preview - Collapsible */}
+              <details className="group">
+                <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground flex items-center gap-1">
+                  <span>▸</span>
+                  <span>Preview message</span>
+                </summary>
+                <div className="mt-2 p-3 bg-muted/50 rounded text-xs">
+                  <p>Hi {getClientName(sharingGallery)},</p>
+                  <p className="mt-2">Your gallery "{sharingGallery.title}" is ready! 📸</p>
+                  <p className="mt-2 font-mono text-[10px] text-muted-foreground">
+                    {window.location.origin}/gallery/{sharingGallery.id}
+                  </p>
+                  {sharingGallery.password && (
+                    <p className="mt-1">Password: {sharingGallery.password}</p>
+                  )}
+                  <p className="mt-2">Best regards,<br/>SamBlessing Photography</p>
                 </div>
-              </div>
+              </details>
             </div>
           )}
         </DialogContent>
