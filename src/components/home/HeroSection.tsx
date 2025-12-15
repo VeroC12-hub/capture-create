@@ -22,17 +22,13 @@ const HeroSection = () => {
       <div className="relative z-10 container mx-auto px-6 text-center">
         <div className="max-w-4xl mx-auto">
           <p className="font-body text-sm md:text-base tracking-[0.3em] uppercase text-primary mb-6 animate-fade-up opacity-0" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
-            Professional Photography Studio
+            SamBlessing Photography
           </p>
-          <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-light text-foreground mb-8 leading-tight animate-fade-up opacity-0" style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}>
-            Capturing Life's
-            <span className="block italic text-primary">Most Precious</span>
-            Moments
+          <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-light text-foreground mb-12 leading-tight animate-fade-up opacity-0" style={{ animationDelay: "0.4s", animationFillMode: "forwards" }}>
+            Capturing
+            <span className="block italic text-primary">Your Story</span>
           </h1>
-          <p className="font-body text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 animate-fade-up opacity-0" style={{ animationDelay: "0.6s", animationFillMode: "forwards" }}>
-            Wedding, Portrait, Corporate & Event Photography crafted with artistry and passion
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-up opacity-0" style={{ animationDelay: "0.8s", animationFillMode: "forwards" }}>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-up opacity-0" style={{ animationDelay: "0.6s", animationFillMode: "forwards" }}>
             <Link to="/portfolio">
               <Button variant="hero" size="xl">
                 View Portfolio
