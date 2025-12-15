@@ -27,48 +27,65 @@ async function refreshAccessToken(refreshToken: string): Promise<TokenResponse> 
       grant_type: 'refresh_token',
     }),
   });
-  
+
   if (!response.ok) {
-    throw new Error('Failed to refresh token');
+    const details = await response.text().catch(() => '');
+    throw new Error(`Failed to refresh token (${response.status}): ${details}`);
   }
-  
+
   return response.json();
 }
 
 async function getOrRefreshToken(supabase: any, userId: string) {
+  // IMPORTANT: use maybeSingle() so “no row” doesn’t become a 406 and break the flow.
   const { data: tokenData, error } = await supabase
     .from('google_drive_tokens')
     .select('*')
     .eq('user_id', userId)
-    .single();
-  
-  if (error || !tokenData) {
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error fetching google_drive_tokens row:', { message: error.message, code: error.code });
     return null;
   }
-  
+
+  if (!tokenData) {
+    return null;
+  }
+
   // Check if token is expired (with 5 min buffer)
   const expiresAt = new Date(tokenData.expires_at);
   const now = new Date();
   now.setMinutes(now.getMinutes() + 5);
-  
+
   if (expiresAt <= now) {
+    if (!tokenData.refresh_token) {
+      console.error('Token expired but no refresh_token available');
+      return null;
+    }
+
     console.log('Token expired, refreshing...');
     const newTokens = await refreshAccessToken(tokenData.refresh_token);
-    
+
     const newExpiresAt = new Date();
     newExpiresAt.setSeconds(newExpiresAt.getSeconds() + newTokens.expires_in);
-    
-    await supabase
+
+    const { error: updateError } = await supabase
       .from('google_drive_tokens')
       .update({
         access_token: newTokens.access_token,
         expires_at: newExpiresAt.toISOString(),
       })
       .eq('user_id', userId);
-    
+
+    if (updateError) {
+      console.error('Error updating refreshed token:', { message: updateError.message, code: updateError.code });
+      return null;
+    }
+
     return newTokens.access_token;
   }
-  
+
   return tokenData.access_token;
 }
 
@@ -238,16 +255,36 @@ Deno.serve(async (req) => {
 
     // Handle OAuth callback
     if (action === 'callback') {
+      if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+        console.error('Missing Google OAuth configuration (client id/secret)');
+        return new Response(JSON.stringify({ error: 'Google OAuth is not configured' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       const code = url.searchParams.get('code');
       const redirectUri = url.searchParams.get('redirect_uri');
-      
+
       if (!code) {
         return new Response(JSON.stringify({ error: 'No code provided' }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      
+
+      if (!redirectUri) {
+        return new Response(JSON.stringify({ error: 'No redirect_uri provided' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      console.log('Google Drive OAuth callback received', {
+        user_id: user.id,
+        redirect_uri: redirectUri,
+      });
+
       // Exchange code for tokens
       const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
@@ -256,43 +293,76 @@ Deno.serve(async (req) => {
           code,
           client_id: GOOGLE_CLIENT_ID,
           client_secret: GOOGLE_CLIENT_SECRET,
-          redirect_uri: redirectUri || '',
+          redirect_uri: redirectUri,
           grant_type: 'authorization_code',
         }),
       });
-      
+
       if (!tokenResponse.ok) {
-        const error = await tokenResponse.text();
-        console.error('Token exchange error:', error);
-        return new Response(JSON.stringify({ error: 'Failed to exchange code' }), {
+        const details = await tokenResponse.text().catch(() => '');
+        console.error('Token exchange error:', {
+          status: tokenResponse.status,
+          details,
+        });
+        return new Response(
+          JSON.stringify({
+            error: 'Failed to exchange code',
+            status: tokenResponse.status,
+            details,
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      const tokens: TokenResponse = await tokenResponse.json();
+
+      // Google may omit refresh_token on subsequent consents. Reuse existing one if present.
+      let refreshTokenToStore = tokens.refresh_token;
+      if (!refreshTokenToStore) {
+        const { data: existing } = await supabase
+          .from('google_drive_tokens')
+          .select('refresh_token')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        refreshTokenToStore = existing?.refresh_token;
+      }
+
+      if (!refreshTokenToStore) {
+        return new Response(JSON.stringify({
+          error: 'No refresh_token returned. Please disconnect and reconnect to grant offline access again.',
+        }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      
-      const tokens: TokenResponse = await tokenResponse.json();
-      
+
       const expiresAt = new Date();
       expiresAt.setSeconds(expiresAt.getSeconds() + tokens.expires_in);
-      
+
       // Upsert tokens
       const { error: upsertError } = await supabase
         .from('google_drive_tokens')
-        .upsert({
-          user_id: user.id,
-          access_token: tokens.access_token,
-          refresh_token: tokens.refresh_token,
-          expires_at: expiresAt.toISOString(),
-        }, { onConflict: 'user_id' });
-      
+        .upsert(
+          {
+            user_id: user.id,
+            access_token: tokens.access_token,
+            refresh_token: refreshTokenToStore,
+            expires_at: expiresAt.toISOString(),
+          },
+          { onConflict: 'user_id' }
+        );
+
       if (upsertError) {
-        console.error('Upsert error:', upsertError);
+        console.error('Upsert error:', { message: upsertError.message, code: upsertError.code });
         return new Response(JSON.stringify({ error: 'Failed to save tokens' }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      
+
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
