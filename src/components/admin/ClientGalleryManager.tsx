@@ -31,6 +31,9 @@ import {
   Calendar,
   Lock,
   Unlock,
+  Share2,
+  Mail,
+  MessageCircle,
 } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 
@@ -47,6 +50,7 @@ export const ClientGalleryManager = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingGallery, setEditingGallery] = useState<Gallery | null>(null);
+  const [sharingGallery, setSharingGallery] = useState<Gallery | null>(null);
   const [newGallery, setNewGallery] = useState({
     title: "",
     description: "",
@@ -188,6 +192,84 @@ export const ClientGalleryManager = () => {
     toast({ title: "Copied", description: "Gallery link copied to clipboard." });
   };
 
+  const getClientEmail = (gallery: Gallery) => {
+    const client = clients.find(c => c.id === gallery.client_id);
+    return client?.email || "";
+  };
+
+  const getClientName = (gallery: Gallery) => {
+    const client = clients.find(c => c.id === gallery.client_id);
+    return client?.full_name || client?.email || "Client";
+  };
+
+  const copyShareMessage = (gallery: Gallery) => {
+    const link = `${window.location.origin}/gallery/${gallery.id}`;
+    const clientName = getClientName(gallery);
+
+    let message = `Hi ${clientName},\n\n`;
+    message += `Your photo gallery "${gallery.title}" is ready! 📸\n\n`;
+    message += `View your photos here:\n${link}\n\n`;
+
+    if (gallery.password) {
+      message += `Password: ${gallery.password}\n\n`;
+    }
+
+    message += `Enjoy your beautiful memories!\n\n`;
+    message += `Best regards,\nSamBlessing Photography\n`;
+    message += `📧 Slessing.studio20@gmail.com\n`;
+    message += `📱 0543518185`;
+
+    navigator.clipboard.writeText(message);
+    toast({ title: "Message Copied!", description: "Share message with link and password copied to clipboard." });
+  };
+
+  const openEmailClient = (gallery: Gallery) => {
+    const clientEmail = getClientEmail(gallery);
+    const clientName = getClientName(gallery);
+    const link = `${window.location.origin}/gallery/${gallery.id}`;
+
+    const subject = encodeURIComponent(`Your Photo Gallery is Ready - ${gallery.title}`);
+
+    let body = `Hi ${clientName},\n\n`;
+    body += `Great news! Your photo gallery "${gallery.title}" is now ready for viewing.\n\n`;
+    body += `View your photos here:\n${link}\n\n`;
+
+    if (gallery.password) {
+      body += `Password: ${gallery.password}\n\n`;
+    }
+
+    body += `You can:\n`;
+    body += `• View all your beautiful photos\n`;
+    body += `• Download individual images\n`;
+    body += `• Share the gallery with family and friends\n\n`;
+    body += `If you have any questions, feel free to reach out!\n\n`;
+    body += `Best regards,\nSamBlessing Photography\n`;
+    body += `Email: Slessing.studio20@gmail.com\n`;
+    body += `Phone: 0543518185`;
+
+    const mailtoLink = `mailto:${clientEmail}?subject=${subject}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoLink;
+  };
+
+  const openWhatsApp = (gallery: Gallery) => {
+    const link = `${window.location.origin}/gallery/${gallery.id}`;
+    const clientName = getClientName(gallery);
+
+    let message = `Hi ${clientName}! 👋\n\n`;
+    message += `Your photo gallery *${gallery.title}* is ready! 📸✨\n\n`;
+    message += `View your photos here:\n${link}\n\n`;
+
+    if (gallery.password) {
+      message += `🔐 Password: *${gallery.password}*\n\n`;
+    }
+
+    message += `Enjoy your beautiful memories! 🎉\n\n`;
+    message += `_SamBlessing Photography_`;
+
+    const whatsappLink = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappLink, '_blank');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -308,6 +390,10 @@ export const ClientGalleryManager = () => {
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6">
                 <div className="flex flex-wrap gap-2 mb-6">
+                  <Button size="sm" variant="default" onClick={() => setSharingGallery(gallery)}>
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share Gallery
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => copyGalleryLink(gallery)}>
                     <Copy className="w-4 h-4 mr-2" />
                     Copy Link
@@ -422,6 +508,116 @@ export const ClientGalleryManager = () => {
               <Button onClick={() => updateGallery(editingGallery)} className="w-full">
                 Save Changes
               </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Share Gallery Dialog */}
+      <Dialog open={!!sharingGallery} onOpenChange={() => setSharingGallery(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Share Gallery - {sharingGallery?.title}</DialogTitle>
+          </DialogHeader>
+          {sharingGallery && (
+            <div className="space-y-6">
+              {/* Gallery Info */}
+              <div className="bg-muted p-4 rounded-lg space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Gallery Link:</span>
+                  <Button size="sm" variant="ghost" onClick={() => copyGalleryLink(sharingGallery)}>
+                    <Copy className="w-3 h-3 mr-1" />
+                    Copy
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground break-all">
+                  {window.location.origin}/gallery/{sharingGallery.id}
+                </p>
+                {sharingGallery.password && (
+                  <div className="pt-2 border-t border-border mt-2">
+                    <span className="text-sm font-medium">Password: </span>
+                    <span className="text-sm">{sharingGallery.password}</span>
+                  </div>
+                )}
+                {sharingGallery.client_id && (
+                  <div className="pt-2 border-t border-border mt-2">
+                    <span className="text-sm font-medium">Assigned to: </span>
+                    <span className="text-sm">{getClientName(sharingGallery)}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Share Options */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-sm">Share via:</h4>
+
+                {/* Email Option */}
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => openEmailClient(sharingGallery)}
+                  disabled={!sharingGallery.client_id || !getClientEmail(sharingGallery)}
+                >
+                  <Mail className="w-4 h-4 mr-3" />
+                  <div className="text-left flex-1">
+                    <div className="font-medium">Send Email</div>
+                    <div className="text-xs text-muted-foreground">
+                      {sharingGallery.client_id && getClientEmail(sharingGallery)
+                        ? `Opens email to ${getClientEmail(sharingGallery)}`
+                        : "Assign client first to enable"}
+                    </div>
+                  </div>
+                </Button>
+
+                {/* WhatsApp Option */}
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => openWhatsApp(sharingGallery)}
+                >
+                  <MessageCircle className="w-4 h-4 mr-3" />
+                  <div className="text-left flex-1">
+                    <div className="font-medium">Share via WhatsApp</div>
+                    <div className="text-xs text-muted-foreground">
+                      Opens WhatsApp with pre-filled message
+                    </div>
+                  </div>
+                </Button>
+
+                {/* Copy Message Option */}
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => copyShareMessage(sharingGallery)}
+                >
+                  <Copy className="w-4 h-4 mr-3" />
+                  <div className="text-left flex-1">
+                    <div className="font-medium">Copy Share Message</div>
+                    <div className="text-xs text-muted-foreground">
+                      Copy formatted message with link & password
+                    </div>
+                  </div>
+                </Button>
+              </div>
+
+              {/* Preview Message */}
+              <div className="bg-muted/50 p-4 rounded-lg border border-border">
+                <p className="text-xs font-medium mb-2">Message Preview:</p>
+                <div className="text-xs text-muted-foreground whitespace-pre-line">
+                  Hi {getClientName(sharingGallery)},
+                  {'\n\n'}
+                  Your photo gallery "{sharingGallery.title}" is ready! 📸
+                  {'\n\n'}
+                  View your photos here:
+                  {'\n'}
+                  {window.location.origin}/gallery/{sharingGallery.id}
+                  {sharingGallery.password && `\n\nPassword: ${sharingGallery.password}`}
+                  {'\n\n'}
+                  Best regards,
+                  {'\n'}
+                  SamBlessing Photography
+                </div>
+              </div>
             </div>
           )}
         </DialogContent>
