@@ -370,9 +370,16 @@ export const ClientGalleryManager = () => {
                 className="px-6 py-4 hover:no-underline"
                 onClick={() => fetchGalleryPhotos(gallery.id)}
               >
-                <div className="flex items-center gap-4 text-left">
+                <div className="flex items-center gap-4 text-left flex-1">
                   <div className="flex-1">
-                    <h4 className="font-display text-lg">{gallery.title}</h4>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-display text-lg">{gallery.title}</h4>
+                      {gallery.client_id && (
+                        <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                          {getClientName(gallery)}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
                       {gallery.event_date && (
                         <span className="flex items-center gap-1">
@@ -384,6 +391,12 @@ export const ClientGalleryManager = () => {
                         {gallery.password ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
                         {gallery.password ? "Protected" : "No password"}
                       </span>
+                      {!gallery.client_id && (
+                        <span className="text-yellow-600 flex items-center gap-1">
+                          <span className="w-2 h-2 bg-yellow-600 rounded-full"></span>
+                          No client assigned
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -412,6 +425,8 @@ export const ClientGalleryManager = () => {
                   <h5 className="font-medium mb-3">Upload Photos</h5>
                   <PhotoUploader
                     galleryId={gallery.id}
+                    clientName={getClientName(gallery)}
+                    packageType={gallery.title}
                     onUploadComplete={() => fetchGalleryPhotos(gallery.id)}
                   />
                 </div>
