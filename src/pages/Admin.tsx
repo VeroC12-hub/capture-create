@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HomepageGalleryManager } from "@/components/admin/HomepageGalleryManager";
 import { ClientGalleryManager } from "@/components/admin/ClientGalleryManager";
 import { BookingsManager } from "@/components/admin/BookingsManager";
+import { MessagesManager } from "@/components/admin/MessagesManager";
 import { GoogleDriveConnect } from "@/components/admin/GoogleDriveConnect";
 import { DriveStorageManager } from "@/components/admin/DriveStorageManager";
 import SiteImagesManager from "@/components/admin/SiteImagesManager";
@@ -19,6 +20,7 @@ import {
   Settings,
   Images,
   Cloud,
+  Mail,
 } from "lucide-react";
 
 const Admin = () => {
@@ -103,7 +105,7 @@ const Admin = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6 mb-8">
+          <TabsList className="grid w-full grid-cols-7 mb-8">
             <TabsTrigger value="site-images" className="flex items-center gap-2">
               <Images className="w-4 h-4" />
               <span className="hidden sm:inline">Site Images</span>
@@ -128,6 +130,11 @@ const Admin = () => {
               <Calendar className="w-4 h-4" />
               <span className="hidden sm:inline">Bookings</span>
               <span className="sm:hidden">Bookings</span>
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              <span className="hidden sm:inline">Messages</span>
+              <span className="sm:hidden">Inbox</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
@@ -154,6 +161,10 @@ const Admin = () => {
 
           <TabsContent value="bookings">
             <BookingsManager />
+          </TabsContent>
+
+          <TabsContent value="messages">
+            <MessagesManager />
           </TabsContent>
 
           <TabsContent value="settings">

@@ -144,11 +144,14 @@ export const PhotoUploader = ({
         );
 
         if (isConnected) {
-          await uploadToDrive(file, {
+          // Checked rather than fire-and-forget: a silently failed Drive upload
+          // would otherwise be reported to the photographer as delivered.
+          const driveResult = await uploadToDrive(file, {
             clientName,
             packageType,
             category: isHomepageGallery ? "Homepage" : "Client Galleries",
           });
+          if (!driveResult.ok) throw new Error("Google Drive rejected the upload");
         }
 
         setUploadingFiles((prev) =>

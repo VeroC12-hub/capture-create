@@ -173,6 +173,57 @@ export const useGoogleDrive = () => {
     return [];
   };
 
+  /**
+   * Creates (or reuses) the Drive folder for one client's programme:
+   * Photography / Clients / <client name> / <programme>
+   */
+  const createGalleryFolder = async (
+    clientName: string,
+    programme?: string
+  ): Promise<{ folder_id: string; folder_url: string; folder_name: string } | null> => {
+    if (!session) return null;
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-drive?action=create-gallery-folder`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ client_name: clientName, programme }),
+        }
+      );
+
+      if (response.ok) return await response.json();
+      console.error("Error creating gallery folder:", await response.text());
+    } catch (error) {
+      console.error("Error creating gallery folder:", error);
+    }
+    return null;
+  };
+
+  /** Files inside a specific gallery folder, including thumbnail links. */
+  const listFolderFiles = async (folderId: string): Promise<DriveFile[]> => {
+    if (!session) return [];
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-drive?action=folder-files&folder_id=${encodeURIComponent(folderId)}`,
+        { headers: { Authorization: `Bearer ${session.access_token}` } }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        return result.files || [];
+      }
+    } catch (error) {
+      console.error("Error listing folder files:", error);
+    }
+    return [];
+  };
+
   const listFiles = async (folderId?: string): Promise<DriveFile[]> => {
     if (!session) return [];
 
@@ -203,13 +254,16 @@ export const useGoogleDrive = () => {
       clientName?: string;
       packageType?: string;
       category?: string;
+      /** Upload straight into a known gallery folder, bypassing name lookup. */
+      folderId?: string;
     }
-  ): Promise<boolean> => {
-    if (!session) return false;
+  ): Promise<{ ok: boolean; file?: DriveFile }> => {
+    if (!session) return { ok: false };
 
     try {
       const formData = new FormData();
       formData.append('file', file);
+      if (options.folderId) formData.append('folder_id', options.folderId);
       if (options.clientName) formData.append('client_name', options.clientName);
       if (options.packageType) formData.append('package_type', options.packageType);
       if (options.category) formData.append('category', options.category);
@@ -225,10 +279,16 @@ export const useGoogleDrive = () => {
         }
       );
 
-      return response.ok;
+      if (!response.ok) {
+        console.error('Error uploading to Drive:', await response.text());
+        return { ok: false };
+      }
+
+      const result = await response.json();
+      return { ok: true, file: result.file };
     } catch (error) {
       console.error('Error uploading to Drive:', error);
-      return false;
+      return { ok: false };
     }
   };
 
@@ -263,6 +323,8 @@ export const useGoogleDrive = () => {
     handleCallback,
     listFolders,
     listFiles,
+    createGalleryFolder,
+    listFolderFiles,
     uploadToDrive,
     getFileContent,
     checkConnection,

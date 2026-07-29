@@ -142,9 +142,12 @@ export const DriveStorageManager = () => {
       );
 
       try {
-        await uploadToDrive(file, {
+        // uploadToDrive reports failure by return value rather than throwing, so
+        // it has to be checked — otherwise a failed upload is reported as complete.
+        const result = await uploadToDrive(file, {
           category: folderName.trim(),
         });
+        if (!result.ok) throw new Error("Google Drive rejected the upload");
 
         setUploadingFiles((prev) =>
           prev.map((f, idx) =>

@@ -1,60 +1,48 @@
 import { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { useSiteImage } from "@/hooks/useSiteImages";
+import {
+  useHomepageGallery,
+  GALLERY_CATEGORIES,
+  categoryLabel,
+  type GalleryPhoto,
+} from "@/hooks/useHomepageGallery";
 
-const categories = ["All", "Wedding", "Portrait", "Corporate", "Event", "Product"];
-
-const portfolioItemsData = [
-  { imageKey: "hero-wedding", category: "Wedding", title: "Sarah & Michael" },
-  { imageKey: "gallery-portrait", category: "Portrait", title: "Elena Portrait" },
-  { imageKey: "gallery-corporate", category: "Corporate", title: "Tech Startup Team" },
-  { imageKey: "gallery-documentary", category: "Wedding", title: "Garden Ceremony" },
-  { imageKey: "gallery-event", category: "Event", title: "Anniversary Gala" },
-  { imageKey: "gallery-product", category: "Product", title: "Luxury Perfume" },
-  { imageKey: "portrait-gallery-1", category: "Portrait", title: "Executive Headshot" },
-  { imageKey: "wedding-gallery-1", category: "Wedding", title: "Beach Wedding" },
-  { imageKey: "service-corporate", category: "Corporate", title: "Board Meeting" },
-  { imageKey: "wedding-gallery-2", category: "Wedding", title: "Romantic Couple" },
-  { imageKey: "wedding-gallery-3", category: "Wedding", title: "Exchange of Vows" },
-  { imageKey: "wedding-gallery-4", category: "Wedding", title: "First Dance" },
-  { imageKey: "portrait-gallery-2", category: "Portrait", title: "Creative Portrait" },
-  { imageKey: "portrait-gallery-3", category: "Portrait", title: "Studio Portrait" },
-  { imageKey: "event-gallery-1", category: "Event", title: "Birthday Celebration" },
-  { imageKey: "event-gallery-2", category: "Event", title: "Corporate Gala" },
-  { imageKey: "service-event", category: "Event", title: "Special Moments" },
-  { imageKey: "service-portrait", category: "Portrait", title: "Professional Session" },
-];
-
-const PortfolioItem = ({ imageKey, category, title }: { imageKey: string; category: string; title: string }) => {
-  const { imageUrl } = useSiteImage(imageKey);
-  
-  return (
-    <div className="group relative overflow-hidden rounded-lg aspect-[4/5] cursor-pointer">
-      <img
-        src={imageUrl}
-        alt={title}
-        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-      />
-      <div className="absolute inset-0 bg-background/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-        <p className="font-body text-xs uppercase tracking-widest text-primary mb-1">
-          {category}
-        </p>
-        <h3 className="font-display text-xl text-foreground">
-          {title}
-        </h3>
-      </div>
+const PortfolioItem = ({ photo }: { photo: GalleryPhoto }) => (
+  <div className="group relative overflow-hidden rounded-lg aspect-[4/5] cursor-pointer">
+    <img
+      src={photo.url}
+      alt={photo.caption || `${categoryLabel(photo.category)} photography by SamBlessing`}
+      loading="lazy"
+      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+    />
+    {/* Dark scrim on hover so the label reads over any photograph. */}
+    <div className="absolute inset-0 bg-gradient-to-t from-charcoal/85 via-charcoal/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+    <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+      <p className="font-body text-xs uppercase tracking-widest text-gold-light">
+        {categoryLabel(photo.category)}
+      </p>
+      {photo.caption && (
+        <h3 className="font-display text-xl text-cream mt-1">{photo.caption}</h3>
+      )}
     </div>
-  );
-};
+  </div>
+);
 
 const Portfolio = () => {
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCategory, setActiveCategory] = useState("all");
+  const { photos, isLoading } = useHomepageGallery();
 
-  const filteredItems = activeCategory === "All" 
-    ? portfolioItemsData 
-    : portfolioItemsData.filter(item => item.category === activeCategory);
+  // Only offer filters that actually have photographs behind them, so a client
+  // never clicks a category and lands on an empty grid.
+  const available = GALLERY_CATEGORIES.filter((c) =>
+    photos.some((p) => p.category === c)
+  );
+
+  const filteredItems =
+    activeCategory === "all"
+      ? photos
+      : photos.filter((p) => p.category === activeCategory);
 
   return (
     <main className="min-h-screen bg-background">
@@ -79,7 +67,7 @@ const Portfolio = () => {
       <section className="py-8 bg-background border-b border-border sticky top-20 z-40 backdrop-blur-md bg-background/95">
         <div className="container mx-auto px-6">
           <div className="flex flex-wrap justify-center gap-4">
-            {categories.map((category) => (
+            {["all", ...available].map((category) => (
               <button
                 key={category}
                 onClick={() => setActiveCategory(category)}
@@ -89,7 +77,7 @@ const Portfolio = () => {
                     : "text-muted-foreground hover:text-foreground border border-border hover:border-primary"
                 }`}
               >
-                {category}
+                {category === "all" ? "All" : categoryLabel(category)}
               </button>
             ))}
           </div>
@@ -99,11 +87,23 @@ const Portfolio = () => {
       {/* Gallery */}
       <section className="py-16 bg-background">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredItems.map((item, index) => (
-              <PortfolioItem key={index} {...item} />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="aspect-[4/5] rounded-lg bg-muted animate-pulse" />
+              ))}
+            </div>
+          ) : filteredItems.length === 0 ? (
+            <p className="text-center text-muted-foreground py-12">
+              No photographs in this category yet.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredItems.map((photo) => (
+                <PortfolioItem key={photo.id} photo={photo} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

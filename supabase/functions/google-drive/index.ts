@@ -117,11 +117,17 @@ async function createFolder(accessToken: string, name: string, parentId?: string
   return response.json();
 }
 
+// Drive query strings are single-quoted, so a name containing an apostrophe
+// ("Mr & Mrs O'Brien") would otherwise break the query or inject extra clauses.
+function escapeDriveQueryValue(value: string) {
+  return value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
 async function findOrCreateFolder(accessToken: string, name: string, parentId?: string) {
   // Search for existing folder
-  let query = `name='${name}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  let query = `name='${escapeDriveQueryValue(name)}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
   if (parentId) {
-    query += ` and '${parentId}' in parents`;
+    query += ` and '${escapeDriveQueryValue(parentId)}' in parents`;
   }
   
   const searchResponse = await fetch(
@@ -419,6 +425,62 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Create the folder for one client's programme and return its id + link.
+    // Structure: Photography / Clients / <client name> / <programme>
+    if (action === 'create-gallery-folder') {
+      const body = await req.json();
+      const clientName = (body.client_name || '').trim();
+      const programme = (body.programme || '').trim();
+
+      if (!clientName) {
+        return new Response(JSON.stringify({ error: 'client_name is required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const root = await findOrCreateFolder(accessToken, 'Photography');
+      const clientsRoot = await findOrCreateFolder(accessToken, 'Clients', root.id);
+      const clientFolder = await findOrCreateFolder(accessToken, clientName, clientsRoot.id);
+      const target = programme
+        ? await findOrCreateFolder(accessToken, programme, clientFolder.id)
+        : clientFolder;
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          folder_id: target.id,
+          folder_name: target.name,
+          folder_url: `https://drive.google.com/drive/folders/${target.id}`,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Files inside one gallery folder, with thumbnails for the client portal.
+    if (action === 'folder-files') {
+      const folderId = url.searchParams.get('folder_id');
+      if (!folderId) {
+        return new Response(JSON.stringify({ error: 'folder_id is required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const query = `'${escapeDriveQueryValue(folderId)}' in parents and trashed=false`;
+      const fields = 'files(id,name,mimeType,size,thumbnailLink,imageMediaMetadata/width,imageMediaMetadata/height)';
+      const res = await fetch(
+        `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}` +
+          `&fields=${encodeURIComponent(fields)}&pageSize=1000&orderBy=name`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      const result = await res.json();
+
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Create organized folder structure and upload
     if (action === 'upload') {
       const formData = await req.formData();
@@ -434,22 +496,33 @@ Deno.serve(async (req) => {
         });
       }
       
-      // Create folder structure: Photography / Category / Client / Package
-      const rootFolder = await findOrCreateFolder(accessToken, 'Photography');
-      const categoryFolder = await findOrCreateFolder(accessToken, category || 'Uncategorized', rootFolder.id);
-      
-      let targetFolder = categoryFolder;
-      
-      if (clientName) {
-        const clientFolder = await findOrCreateFolder(accessToken, clientName, categoryFolder.id);
-        targetFolder = clientFolder;
-        
-        if (packageType) {
-          const packageFolder = await findOrCreateFolder(accessToken, packageType, clientFolder.id);
-          targetFolder = packageFolder;
+      // A gallery already has its Drive folder, so prefer uploading straight into
+      // it. Resolving by name each time risks drifting into a different folder if
+      // the client or programme is ever renamed.
+      const explicitFolderId = formData.get('folder_id') as string | null;
+
+      let targetFolder: { id: string };
+
+      if (explicitFolderId) {
+        targetFolder = { id: explicitFolderId };
+      } else {
+        // Create folder structure: Photography / Category / Client / Package
+        const rootFolder = await findOrCreateFolder(accessToken, 'Photography');
+        const categoryFolder = await findOrCreateFolder(accessToken, category || 'Uncategorized', rootFolder.id);
+
+        targetFolder = categoryFolder;
+
+        if (clientName) {
+          const clientFolder = await findOrCreateFolder(accessToken, clientName, categoryFolder.id);
+          targetFolder = clientFolder;
+
+          if (packageType) {
+            const packageFolder = await findOrCreateFolder(accessToken, packageType, clientFolder.id);
+            targetFolder = packageFolder;
+          }
         }
       }
-      
+
       const uploadedFile = await uploadFile(accessToken, file, file.name, targetFolder.id);
       
       return new Response(JSON.stringify({ success: true, file: uploadedFile }), {

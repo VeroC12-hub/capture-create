@@ -10,7 +10,32 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.5"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -60,34 +85,79 @@ export type Database = {
         Row: {
           client_id: string | null
           created_at: string
+          delivered_at: string | null
           description: string | null
+          drive_folder_id: string | null
+          drive_folder_url: string | null
           event_date: string | null
           id: string
           is_public: boolean | null
           password: string | null
+          programme: string | null
           title: string
           updated_at: string
         }
         Insert: {
           client_id?: string | null
           created_at?: string
+          delivered_at?: string | null
           description?: string | null
+          drive_folder_id?: string | null
+          drive_folder_url?: string | null
           event_date?: string | null
           id?: string
           is_public?: boolean | null
           password?: string | null
+          programme?: string | null
           title: string
           updated_at?: string
         }
         Update: {
           client_id?: string | null
           created_at?: string
+          delivered_at?: string | null
           description?: string | null
+          drive_folder_id?: string | null
+          drive_folder_url?: string | null
           event_date?: string | null
           id?: string
           is_public?: boolean | null
           password?: string | null
+          programme?: string | null
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contact_messages: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          status?: string
+          subject?: string
           updated_at?: string
         }
         Relationships: []
@@ -96,29 +166,41 @@ export type Database = {
         Row: {
           caption: string | null
           created_at: string
+          drive_file_id: string | null
           file_name: string
-          file_path: string
+          file_path: string | null
           gallery_id: string
           id: string
+          mime_type: string | null
+          size_bytes: number | null
           sort_order: number | null
+          thumbnail_url: string | null
         }
         Insert: {
           caption?: string | null
           created_at?: string
+          drive_file_id?: string | null
           file_name: string
-          file_path: string
+          file_path?: string | null
           gallery_id: string
           id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
           sort_order?: number | null
+          thumbnail_url?: string | null
         }
         Update: {
           caption?: string | null
           created_at?: string
+          drive_file_id?: string | null
           file_name?: string
-          file_path?: string
+          file_path?: string | null
           gallery_id?: string
           id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
           sort_order?: number | null
+          thumbnail_url?: string | null
         }
         Relationships: [
           {
@@ -414,6 +496,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       app_role: ["admin", "client"],

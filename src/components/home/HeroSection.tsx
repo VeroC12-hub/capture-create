@@ -14,28 +14,30 @@ const HeroSection = () => {
           alt="Romantic wedding photography at sunset"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-overlay" />
-        <div className="absolute inset-0 bg-background/10" />
+        {/* Scrim: the hero image is client-managed and can be any brightness, so
+            the text sits on its own darkened layer rather than relying on the
+            photo being pale. Heaviest through the middle where the copy sits. */}
+        <div className="absolute inset-0 bg-gradient-to-b from-charcoal/70 via-charcoal/55 to-charcoal/75" />
       </div>
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 text-center">
         <div className="max-w-2xl mx-auto">
-          <p className="font-display text-xl md:text-2xl font-light italic text-black mb-4 tracking-wider animate-fade-up opacity-0" style={{ animationDelay: "0.2s", animationFillMode: "forwards", textShadow: "0 2px 8px rgba(255,255,255,0.8)", letterSpacing: "0.1em" }}>
+          <p className="font-display text-2xl md:text-3xl font-light italic text-cream mb-4 tracking-wider animate-fade-up opacity-0" style={{ animationDelay: "0.2s", animationFillMode: "forwards", textShadow: "0 2px 12px rgba(0,0,0,0.55)", letterSpacing: "0.1em" }}>
             SamBlessing Photography
           </p>
-          <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-medium text-black mb-6 leading-tight animate-fade-up opacity-0" style={{ animationDelay: "0.4s", animationFillMode: "forwards", textShadow: "0 2px 4px rgba(255,255,255,0.5)" }}>
+          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-medium text-cream mb-8 leading-tight animate-fade-up opacity-0" style={{ animationDelay: "0.4s", animationFillMode: "forwards", textShadow: "0 2px 16px rgba(0,0,0,0.5)" }}>
             Capturing
-            <span className="block italic text-black">Priceless Moments</span>
+            <span className="block italic text-gold-light">Priceless Moments</span>
           </h1>
-          <div className="flex flex-col sm:flex-row gap-2 justify-center animate-fade-up opacity-0" style={{ animationDelay: "0.6s", animationFillMode: "forwards" }}>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-up opacity-0" style={{ animationDelay: "0.6s", animationFillMode: "forwards" }}>
             <Link to="/portfolio">
-              <Button variant="hero" size="sm" className="text-xs">
+              <Button variant="hero" size="lg">
                 View Portfolio
               </Button>
             </Link>
             <Link to="/booking">
-              <Button variant="gold" size="sm" className="text-xs">
+              <Button variant="gold" size="lg">
                 Book a Session
               </Button>
             </Link>
