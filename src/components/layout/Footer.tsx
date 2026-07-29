@@ -17,7 +17,10 @@ const Footer = () => {
           <img src={footerImage2.imageUrl} alt="" className="w-full h-full object-cover" />
           <img src={footerImage3.imageUrl} alt="" className="w-full h-full object-cover" />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-secondary via-secondary/80 to-transparent" />
+        {/* The mid-stop was /80, which bleached the photographs to near-white.
+            The bottom stays fully opaque so the band still blends seamlessly
+            into the footer background below it. */}
+        <div className="absolute inset-0 bg-gradient-to-t from-secondary via-secondary/55 to-transparent" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
             <h3 className="font-display text-3xl md:text-4xl text-foreground mb-4">
@@ -127,15 +130,31 @@ const Footer = () => {
             <ul className="space-y-4 text-sm text-muted-foreground">
               <li className="flex items-center gap-3">
                 <Mail size={16} className="text-primary" />
-                Slessing.studio20@gmail.com
+                <a
+                  href="mailto:Slessing.studio20@gmail.com"
+                  className="hover:text-primary transition-colors"
+                >
+                  Slessing.studio20@gmail.com
+                </a>
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={16} className="text-primary" />
-                0543518185
+                {/* Dialled in international form so it works from any handset,
+                    while still reading as the local number. */}
+                <a href="tel:+233543518185" className="hover:text-primary transition-colors">
+                  0543518185
+                </a>
               </li>
               <li className="flex items-start gap-3">
                 <MapPin size={16} className="text-primary mt-1" />
-                <span>Community 25, Dawhenya, Ghana</span>
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=Community+25+Dawhenya+Ghana"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-colors"
+                >
+                  Community 25, Dawhenya, Ghana
+                </a>
               </li>
             </ul>
           </div>
