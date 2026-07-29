@@ -36,7 +36,12 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <span className="font-display text-2xl md:text-3xl font-semibold text-primary italic">
+            <span
+              className={`font-display text-2xl md:text-3xl font-semibold italic transition-colors duration-300 ${
+                isScrolled ? "text-primary" : "text-cream"
+              }`}
+              style={isScrolled ? undefined : { textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}
+            >
               SamBlessing
             </span>
           </Link>
@@ -47,11 +52,19 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 to={link.path}
+                // Over the hero photograph the bar is transparent, so dark grey
+                // links disappear. Light type there, dark once scrolled onto the
+                // solid background.
                 className={`font-body text-sm tracking-widest uppercase transition-colors duration-300 ${
-                  location.pathname === link.path
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-primary"
+                  isScrolled
+                    ? location.pathname === link.path
+                      ? "text-primary"
+                      : "text-muted-foreground hover:text-primary"
+                    : location.pathname === link.path
+                      ? "text-gold-light"
+                      : "text-cream/90 hover:text-gold-light"
                 }`}
+                style={isScrolled ? undefined : { textShadow: "0 1px 8px rgba(0,0,0,0.6)" }}
               >
                 {link.name}
               </Link>

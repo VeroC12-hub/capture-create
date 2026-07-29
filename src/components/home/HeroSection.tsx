@@ -16,8 +16,10 @@ const HeroSection = () => {
         />
         {/* Scrim: the hero image is client-managed and can be any brightness, so
             the text sits on its own darkened layer rather than relying on the
-            photo being pale. Heaviest through the middle where the copy sits. */}
-        <div className="absolute inset-0 bg-gradient-to-b from-charcoal/70 via-charcoal/55 to-charcoal/75" />
+            photo being pale. Kept light overall so the photograph reads, with a
+            soft pool of shade behind the copy where legibility actually matters. */}
+        <div className="absolute inset-0 bg-gradient-to-b from-charcoal/45 via-charcoal/20 to-charcoal/50" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,hsl(var(--charcoal)/0.5)_0%,transparent_100%)]" />
       </div>
 
       {/* Content */}
