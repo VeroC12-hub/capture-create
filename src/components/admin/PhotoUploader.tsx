@@ -7,6 +7,7 @@ import { GoogleDrivePicker } from "@/components/admin/GoogleDrivePicker";
 import { Upload, X, Image as ImageIcon, Loader2, FolderOpen, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { DROPZONE_ACCEPT, isAcceptedUpload, isPreviewableImage } from "@/lib/mediaTypes";
 
 interface PhotoUploaderProps {
   galleryId?: string;
@@ -47,28 +48,30 @@ export const PhotoUploader = ({
       file,
       progress: 0,
       status: "pending" as const,
-      preview: URL.createObjectURL(file),
+      preview: isPreviewableImage(file.name) ? URL.createObjectURL(file) : "",
     }));
     setUploadingFiles((prev) => [...prev, ...newFiles]);
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "image/*": [".jpeg", ".jpg", ".png", ".webp"] },
+    accept: DROPZONE_ACCEPT,
     multiple: true,
   });
 
   const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
+      // RAW files report an empty MIME type, so filtering on file.type silently
+      // dropped every .cr2/.cr3 in the folder. Decide by extension instead.
       const imageFiles = Array.from(files).filter((file) =>
-        file.type.startsWith("image/")
+        isAcceptedUpload(file.name)
       );
       const newFiles: UploadingFile[] = imageFiles.map((file) => ({
         file,
         progress: 0,
         status: "pending" as const,
-        preview: URL.createObjectURL(file),
+        preview: isPreviewableImage(file.name) ? URL.createObjectURL(file) : "",
       }));
       setUploadingFiles((prev) => [...prev, ...newFiles]);
     }
@@ -77,7 +80,7 @@ export const PhotoUploader = ({
   const removeFile = (index: number) => {
     setUploadingFiles((prev) => {
       const newFiles = [...prev];
-      URL.revokeObjectURL(newFiles[index].preview);
+      if (newFiles[index].preview) URL.revokeObjectURL(newFiles[index].preview);
       newFiles.splice(index, 1);
       return newFiles;
     });
@@ -348,7 +351,18 @@ export const PhotoUploader = ({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-h-64 overflow-y-auto">
             {uploadingFiles.map((uf, index) => (
               <div key={index} className="relative bg-card rounded-lg overflow-hidden border border-border">
-                <img src={uf.preview} alt={uf.file.name} className="w-full h-24 object-cover" />
+                {uf.preview ? (
+                  <img src={uf.preview} alt={uf.file.name} className="w-full h-24 object-cover" />
+                ) : (
+                  // RAW, PSD and video have no browser preview — show the name instead
+                  // of a broken image so Sam can still see what he queued.
+                  <div className="w-full h-24 flex flex-col items-center justify-center bg-muted text-muted-foreground px-1">
+                    <ImageIcon className="w-5 h-5 mb-1" />
+                    <span className="text-[10px] uppercase tracking-wide">
+                      {uf.file.name.split(".").pop()}
+                    </span>
+                  </div>
+                )}
                 {uf.status === "pending" && (
                   <button
                     onClick={() => removeFile(index)}

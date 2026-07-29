@@ -12,6 +12,7 @@ import { ArrowLeft, Lock, Loader2, Download, X, ChevronLeft, ChevronRight } from
 import { Tables } from "@/integrations/supabase/types";
 import { useGalleryDownload } from "@/hooks/useGalleryDownload";
 import { useDrivePhotoUrls } from "@/hooks/useDrivePhotoUrls";
+import { isVideo, isPreviewableImage } from "@/lib/mediaTypes";
 
 type Gallery = Tables<"client_galleries">;
 type GalleryPhoto = Tables<"gallery_photos">;
@@ -280,11 +281,31 @@ const GalleryView = () => {
                 className="relative group cursor-pointer overflow-hidden rounded-lg"
                 onClick={() => setSelectedPhoto(index)}
               >
-                <img
-                  src={getPhotoUrl(photo)}
-                  alt={photo.caption || photo.file_name}
-                  className="w-full h-48 md:h-64 object-cover transition-transform duration-300 group-hover:scale-105"
-                />
+                {isVideo(photo.file_name) ? (
+                  <video
+                    src={getPhotoUrl(photo)}
+                    className="w-full h-48 md:h-64 object-cover"
+                    preload="metadata"
+                    muted
+                  />
+                ) : isPreviewableImage(photo.file_name) ? (
+                  <img
+                    src={getPhotoUrl(photo)}
+                    alt={photo.caption || photo.file_name}
+                    loading="lazy"
+                    className="w-full h-48 md:h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                ) : (
+                  // RAW and PSD cannot be shown in a browser, but they are still
+                  // part of the delivery, so present them as a downloadable file.
+                  <div className="w-full h-48 md:h-64 flex flex-col items-center justify-center bg-secondary text-muted-foreground px-3 text-center">
+                    <Download className="w-6 h-6 mb-2" />
+                    <span className="text-xs font-medium break-all">{photo.file_name}</span>
+                    <span className="text-[10px] uppercase tracking-widest mt-1">
+                      {photo.file_name.split(".").pop()} &middot; download only
+                    </span>
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/20 transition-colors" />
               </div>
             ))}
@@ -312,11 +333,30 @@ const GalleryView = () => {
                 <span className="text-sm">Download</span>
               </button>
 
-              <img
-                src={getPhotoUrl(photos[selectedPhoto])}
-                alt={photos[selectedPhoto].caption || photos[selectedPhoto].file_name}
-                className="w-full max-h-[80vh] object-contain"
-              />
+              {isVideo(photos[selectedPhoto].file_name) ? (
+                <video
+                  src={getPhotoUrl(photos[selectedPhoto])}
+                  className="w-full max-h-[80vh]"
+                  controls
+                  autoPlay
+                />
+              ) : isPreviewableImage(photos[selectedPhoto].file_name) ? (
+                <img
+                  src={getPhotoUrl(photos[selectedPhoto])}
+                  alt={photos[selectedPhoto].caption || photos[selectedPhoto].file_name}
+                  className="w-full max-h-[80vh] object-contain"
+                />
+              ) : (
+                <div className="w-full h-[60vh] flex flex-col items-center justify-center text-background gap-3">
+                  <Download className="w-10 h-10" />
+                  <p className="font-medium break-all px-6 text-center">
+                    {photos[selectedPhoto].file_name}
+                  </p>
+                  <p className="text-sm text-background/70">
+                    This format can't be previewed in a browser — use Download to save it.
+                  </p>
+                </div>
+              )}
 
               {selectedPhoto > 0 && (
                 <button
