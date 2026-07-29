@@ -135,16 +135,28 @@ export const PhotoUploader = ({
         )
       );
 
-      try {
-        const { error: uploadError } = await supabase.storage
-          .from("photos")
-          .upload(filePath, file);
+      // Client galleries hold full-resolution originals — a single wedding can be
+      // several GB, which would blow through Supabase's 1GB bucket immediately.
+      // So when Drive is connected those go to Drive alone. The homepage gallery
+      // is small, web-sized and must be publicly readable, so it stays in Supabase.
+      const driveOnly = !isHomepageGallery && isConnected && !!driveFolderId;
 
-        if (uploadError) throw uploadError;
+      try {
+        let storagePath: string | null = null;
+
+        if (!driveOnly) {
+          const { error: uploadError } = await supabase.storage
+            .from("photos")
+            .upload(filePath, file);
+          if (uploadError) throw uploadError;
+          storagePath = filePath;
+        }
 
         setUploadingFiles((prev) =>
           prev.map((f, idx) => (idx === i ? { ...f, progress: 50 } : f))
         );
+
+        let driveFile: { id: string; thumbnailLink?: string; mimeType?: string; size?: string } | undefined;
 
         if (isConnected) {
           // Checked rather than fire-and-forget: a silently failed Drive upload
@@ -159,6 +171,7 @@ export const PhotoUploader = ({
             category: isHomepageGallery ? "Homepage" : "Client Galleries",
           });
           if (!driveResult.ok) throw new Error("Google Drive rejected the upload");
+          driveFile = driveResult.file as typeof driveFile;
         }
 
         setUploadingFiles((prev) =>
@@ -179,8 +192,12 @@ export const PhotoUploader = ({
             .from("gallery_photos")
             .insert({
               gallery_id: galleryId,
-              file_path: filePath,
+              file_path: storagePath,
               file_name: file.name,
+              drive_file_id: driveFile?.id ?? null,
+              thumbnail_url: driveFile?.thumbnailLink ?? null,
+              mime_type: driveFile?.mimeType ?? file.type,
+              size_bytes: driveFile?.size ? Number(driveFile.size) : file.size,
             });
           if (dbError) throw dbError;
         }

@@ -36,6 +36,27 @@ async function refreshAccessToken(refreshToken: string): Promise<TokenResponse> 
   return response.json();
 }
 
+/**
+ * Client galleries live in the photographer's Drive, but the person viewing them
+ * is the client, who has no Drive token of their own. So serving a gallery photo
+ * uses the studio's stored token rather than the requester's. Access is decided
+ * separately, against the gallery row, before this is ever called.
+ */
+async function getStudioToken(supabase: any) {
+  const { data, error } = await supabase
+    .from('google_drive_tokens')
+    .select('user_id')
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) {
+    console.error('No studio Drive token available:', error?.message);
+    return null;
+  }
+  return getOrRefreshToken(supabase, data.user_id);
+}
+
 async function getOrRefreshToken(supabase: any, userId: string) {
   // IMPORTANT: use maybeSingle() so “no row” doesn’t become a 406 and break the flow.
   const { data: tokenData, error } = await supabase
@@ -156,8 +177,11 @@ async function uploadFile(accessToken: string, file: Blob, fileName: string, fol
   form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
   form.append('file', file);
   
+  // Ask for the fields the gallery needs back, so a photo can be rendered and
+  // downloaded without a second round trip per file.
+  const fields = 'id,name,mimeType,size,thumbnailLink';
   const response = await fetch(
-    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+    `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=${encodeURIComponent(fields)}`,
     {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${accessToken}` },
@@ -395,6 +419,80 @@ Deno.serve(async (req) => {
       
       return new Response(JSON.stringify({ url: authUrl }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Serve one photo from a client gallery. Unlike every action below, this is
+    // for the *client* viewing their own gallery, so it authorises against the
+    // gallery row and then reads Drive with the studio's token.
+    if (action === 'gallery-file') {
+      const galleryId = url.searchParams.get('gallery_id');
+      const fileId = url.searchParams.get('file_id');
+
+      if (!galleryId || !fileId) {
+        return new Response(JSON.stringify({ error: 'gallery_id and file_id are required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // The photo must actually belong to the gallery being claimed, otherwise a
+      // known file id could be pulled through any gallery the caller can reach.
+      const { data: photo } = await supabase
+        .from('gallery_photos')
+        .select('id, gallery_id')
+        .eq('gallery_id', galleryId)
+        .eq('drive_file_id', fileId)
+        .maybeSingle();
+
+      if (!photo) {
+        return new Response(JSON.stringify({ error: 'Not found' }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { data: gallery } = await supabase
+        .from('client_galleries')
+        .select('id, client_id, is_public')
+        .eq('id', galleryId)
+        .maybeSingle();
+
+      if (!gallery) {
+        return new Response(JSON.stringify({ error: 'Not found' }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { data: isAdmin } = await supabase.rpc('has_role', {
+        _user_id: user.id,
+        _role: 'admin',
+      });
+
+      const allowed = gallery.is_public || isAdmin || gallery.client_id === user.id;
+      if (!allowed) {
+        return new Response(JSON.stringify({ error: 'Forbidden' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const studioToken = await getStudioToken(supabase);
+      if (!studioToken) {
+        return new Response(JSON.stringify({ error: 'Studio Drive is not connected' }), {
+          status: 503,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const fileResponse = await getFileContent(studioToken, fileId);
+      return new Response(fileResponse.body, {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': fileResponse.headers.get('Content-Type') || 'application/octet-stream',
+          'Cache-Control': 'private, max-age=3600',
+        },
       });
     }
 

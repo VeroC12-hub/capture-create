@@ -11,6 +11,7 @@ import {
 import { ArrowLeft, Lock, Loader2, Download, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { useGalleryDownload } from "@/hooks/useGalleryDownload";
+import { useDrivePhotoUrls } from "@/hooks/useDrivePhotoUrls";
 
 type Gallery = Tables<"client_galleries">;
 type GalleryPhoto = Tables<"gallery_photos">;
@@ -31,6 +32,10 @@ const GalleryView = () => {
     error: downloadError,
     supportsStreamingSave,
   } = useGalleryDownload();
+  const driveFileIds = photos
+    .filter((p) => !p.file_path && p.drive_file_id)
+    .map((p) => p.drive_file_id as string);
+  const { urls: driveUrls } = useDrivePhotoUrls(galleryId, driveFileIds);
 
   useEffect(() => {
     fetchGallery();
@@ -86,11 +91,8 @@ const GalleryView = () => {
 
   const handleDownloadAll = () => {
     const files = photos
-      .filter((p) => p.file_path)
-      .map((p) => ({
-        name: p.file_name,
-        url: getPublicUrl(p.file_path!),
-      }));
+      .map((p) => ({ name: p.file_name, url: getPhotoUrl(p) }))
+      .filter((f) => f.url);
 
     const safeName = (gallery?.title || "gallery").replace(/[^\w\d\- ]+/g, "").trim();
     download(files, `${safeName || "gallery"}.zip`);
@@ -101,8 +103,20 @@ const GalleryView = () => {
     return data.publicUrl;
   };
 
+  /**
+   * A photo lives either in Supabase storage (older galleries, homepage images)
+   * or in the studio's Google Drive (full-resolution client originals). Drive
+   * files are served through the edge function, which authorises against this
+   * gallery and then reads Drive with the studio's own token.
+   */
+  const getPhotoUrl = (photo: GalleryPhoto) => {
+    if (photo.file_path) return getPublicUrl(photo.file_path);
+    if (photo.drive_file_id) return driveUrls[photo.drive_file_id] || "";
+    return "";
+  };
+
   const downloadPhoto = async (photo: GalleryPhoto) => {
-    const url = getPublicUrl(photo.file_path);
+    const url = getPhotoUrl(photo);
     const response = await fetch(url);
     const blob = await response.blob();
     const downloadUrl = window.URL.createObjectURL(blob);
@@ -267,7 +281,7 @@ const GalleryView = () => {
                 onClick={() => setSelectedPhoto(index)}
               >
                 <img
-                  src={getPublicUrl(photo.file_path)}
+                  src={getPhotoUrl(photo)}
                   alt={photo.caption || photo.file_name}
                   className="w-full h-48 md:h-64 object-cover transition-transform duration-300 group-hover:scale-105"
                 />
@@ -299,7 +313,7 @@ const GalleryView = () => {
               </button>
 
               <img
-                src={getPublicUrl(photos[selectedPhoto].file_path)}
+                src={getPhotoUrl(photos[selectedPhoto])}
                 alt={photos[selectedPhoto].caption || photos[selectedPhoto].file_name}
                 className="w-full max-h-[80vh] object-contain"
               />
