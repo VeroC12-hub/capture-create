@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PhotoUploader } from "./PhotoUploader";
+import { useGoogleDrive } from "@/hooks/useGoogleDrive";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +45,7 @@ type Client = { id: string; email: string; full_name: string | null };
 
 export const ClientGalleryManager = () => {
   const { toast } = useToast();
+  const { isConnected, createGalleryFolder } = useGoogleDrive();
   const [galleries, setGalleries] = useState<Gallery[]>([]);
   const [galleryPhotos, setGalleryPhotos] = useState<Record<string, GalleryPhoto[]>>({});
   const [clients, setClients] = useState<Client[]>([]);
@@ -51,6 +53,7 @@ export const ClientGalleryManager = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingGallery, setEditingGallery] = useState<Gallery | null>(null);
   const [sharingGallery, setSharingGallery] = useState<Gallery | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
   const [newGallery, setNewGallery] = useState({
     title: "",
     description: "",
@@ -58,6 +61,9 @@ export const ClientGalleryManager = () => {
     password: "",
     is_public: false,
     client_id: "",
+    // The specific event this gallery covers, e.g. "Traditional Marriage".
+    // Becomes a subfolder under the client in Drive.
+    programme: "",
   });
 
   const fetchGalleries = async () => {
@@ -109,22 +115,68 @@ export const ClientGalleryManager = () => {
   };
 
   const createGallery = async () => {
-    const { error } = await supabase.from("client_galleries").insert({
-      title: newGallery.title,
-      description: newGallery.description || null,
-      event_date: newGallery.event_date || null,
-      password: newGallery.password || null,
-      is_public: newGallery.is_public,
-      client_id: newGallery.client_id || null,
-    });
+    setIsCreating(true);
+    try {
+      // Create the Drive folder first. If Drive isn't connected we still create
+      // the gallery — it just has nowhere to hold full-resolution originals yet,
+      // and the row can be linked later once Sam connects.
+      let driveFolderId: string | null = null;
+      let driveFolderUrl: string | null = null;
 
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Created", description: "Gallery created successfully." });
+      if (isConnected) {
+        const folder = await createGalleryFolder(
+          newGallery.title,
+          newGallery.programme || undefined
+        );
+        if (folder) {
+          driveFolderId = folder.folder_id;
+          driveFolderUrl = folder.folder_url;
+        } else {
+          toast({
+            title: "Drive folder not created",
+            description:
+              "The gallery was saved, but its Google Drive folder could not be created. Reconnect Drive in Settings and try again.",
+            variant: "destructive",
+          });
+        }
+      }
+
+      const { error } = await supabase.from("client_galleries").insert({
+        title: newGallery.title,
+        description: newGallery.description || null,
+        event_date: newGallery.event_date || null,
+        password: newGallery.password || null,
+        is_public: newGallery.is_public,
+        client_id: newGallery.client_id || null,
+        programme: newGallery.programme || null,
+        drive_folder_id: driveFolderId,
+        drive_folder_url: driveFolderUrl,
+      });
+
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+        return;
+      }
+
+      toast({
+        title: "Created",
+        description: driveFolderId
+          ? "Gallery and Google Drive folder created."
+          : "Gallery created.",
+      });
       setIsCreateOpen(false);
-      setNewGallery({ title: "", description: "", event_date: "", password: "", is_public: false, client_id: "" });
+      setNewGallery({
+        title: "",
+        description: "",
+        event_date: "",
+        password: "",
+        is_public: false,
+        client_id: "",
+        programme: "",
+      });
       fetchGalleries();
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -303,6 +355,21 @@ export const ClientGalleryManager = () => {
                 />
               </div>
               <div>
+                <Label>Programme</Label>
+                <Input
+                  value={newGallery.programme}
+                  onChange={(e) => setNewGallery({ ...newGallery, programme: e.target.value })}
+                  placeholder="e.g., Traditional Marriage, Reception"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  {isConnected
+                    ? "Photos go to Drive under Photography / Clients / " +
+                      (newGallery.title || "<client>") +
+                      (newGallery.programme ? " / " + newGallery.programme : "")
+                    : "Google Drive is not connected — connect it in Settings to store full-resolution photos."}
+                </p>
+              </div>
+              <div>
                 <Label>Event Date</Label>
                 <Input
                   type="date"
@@ -341,8 +408,8 @@ export const ClientGalleryManager = () => {
                 />
                 <Label>Make gallery public (visible without login)</Label>
               </div>
-              <Button onClick={createGallery} disabled={!newGallery.title} className="w-full">
-                Create Gallery
+              <Button onClick={createGallery} disabled={!newGallery.title || isCreating} className="w-full">
+                {isCreating ? "Creating…" : "Create Gallery"}
               </Button>
             </div>
           </DialogContent>
@@ -427,6 +494,7 @@ export const ClientGalleryManager = () => {
                     galleryId={gallery.id}
                     clientName={getClientName(gallery)}
                     packageType={gallery.title}
+                    driveFolderId={gallery.drive_folder_id}
                     onUploadComplete={() => fetchGalleryPhotos(gallery.id)}
                   />
                 </div>

@@ -15,6 +15,8 @@ interface PhotoUploaderProps {
   isHomepageGallery?: boolean;
   clientName?: string;
   packageType?: string;
+  /** The gallery's own Drive folder, so originals land in the right place. */
+  driveFolderId?: string | null;
 }
 
 interface UploadingFile {
@@ -31,6 +33,7 @@ export const PhotoUploader = ({
   isHomepageGallery = false,
   clientName,
   packageType,
+  driveFolderId,
 }: PhotoUploaderProps) => {
   const { toast } = useToast();
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
@@ -147,6 +150,10 @@ export const PhotoUploader = ({
           // Checked rather than fire-and-forget: a silently failed Drive upload
           // would otherwise be reported to the photographer as delivered.
           const driveResult = await uploadToDrive(file, {
+            // Prefer the gallery's own folder; fall back to name-based nesting
+            // for the homepage gallery and any gallery created before Drive
+            // linking existed.
+            folderId: driveFolderId || undefined,
             clientName,
             packageType,
             category: isHomepageGallery ? "Homepage" : "Client Galleries",
@@ -199,10 +206,28 @@ export const PhotoUploader = ({
     }
 
     setIsUploading(false);
-    toast({
-      title: "Upload Complete",
-      description: `${uploadingFiles.length} photo(s) uploaded successfully.${isConnected ? " Also synced to Google Drive." : ""}`,
+
+    // Report what actually happened. Claiming every photo succeeded when some
+    // failed is worse than useless for a delivery workflow.
+    setUploadingFiles((current) => {
+      const failed = current.filter((f) => f.status === "error").length;
+      const succeeded = current.length - failed;
+
+      if (failed > 0) {
+        toast({
+          title: "Some uploads failed",
+          description: `${succeeded} of ${current.length} photo(s) uploaded. ${failed} failed — the failed ones are still listed so you can retry.`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Upload Complete",
+          description: `${succeeded} photo(s) uploaded successfully.${isConnected ? " Also synced to Google Drive." : ""}`,
+        });
+      }
+      return current;
     });
+
     onUploadComplete();
     
     setTimeout(() => {

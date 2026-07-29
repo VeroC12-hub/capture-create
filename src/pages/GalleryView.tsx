@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { ArrowLeft, Lock, Loader2, Download, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
+import { useGalleryDownload } from "@/hooks/useGalleryDownload";
 
 type Gallery = Tables<"client_galleries">;
 type GalleryPhoto = Tables<"gallery_photos">;
@@ -23,6 +24,13 @@ const GalleryView = () => {
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
+  const {
+    download,
+    isDownloading,
+    progress,
+    error: downloadError,
+    supportsStreamingSave,
+  } = useGalleryDownload();
 
   useEffect(() => {
     fetchGallery();
@@ -74,6 +82,18 @@ const GalleryView = () => {
     } else {
       setPasswordError(true);
     }
+  };
+
+  const handleDownloadAll = () => {
+    const files = photos
+      .filter((p) => p.file_path)
+      .map((p) => ({
+        name: p.file_name,
+        url: getPublicUrl(p.file_path!),
+      }));
+
+    const safeName = (gallery?.title || "gallery").replace(/[^\w\d\- ]+/g, "").trim();
+    download(files, `${safeName || "gallery"}.zip`);
   };
 
   const getPublicUrl = (filePath: string) => {
@@ -201,6 +221,33 @@ const GalleryView = () => {
                 day: "numeric",
               })}
             </p>
+          )}
+
+          {photos.length > 0 && (
+            <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-3">
+              <Button onClick={handleDownloadAll} disabled={isDownloading} variant="gold">
+                {isDownloading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Preparing {progress.done}/{progress.total}…
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4 mr-2" />
+                    Download all {photos.length} photos
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Full resolution, original quality.
+                {!supportsStreamingSave &&
+                  " Large galleries download faster in Chrome or Edge."}
+              </p>
+            </div>
+          )}
+
+          {downloadError && (
+            <p className="text-sm text-destructive mt-3">{downloadError}</p>
           )}
         </div>
       </header>
