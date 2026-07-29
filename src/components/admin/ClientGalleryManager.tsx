@@ -45,7 +45,7 @@ type Client = { id: string; email: string; full_name: string | null };
 
 export const ClientGalleryManager = () => {
   const { toast } = useToast();
-  const { isConnected, createGalleryFolder } = useGoogleDrive();
+  const { isConnected, createGalleryFolder, deleteDriveFile } = useGoogleDrive();
   const [galleries, setGalleries] = useState<Gallery[]>([]);
   const [galleryPhotos, setGalleryPhotos] = useState<Record<string, GalleryPhoto[]>>({});
   const [clients, setClients] = useState<Client[]>([]);
@@ -227,15 +227,54 @@ export const ClientGalleryManager = () => {
   };
 
   const deletePhoto = async (photo: GalleryPhoto) => {
-    await supabase.storage.from("photos").remove([photo.file_path]);
+    // A photo lives in one place or the other, so remove it from wherever it is.
+    // Skipping the Drive side would leave the file orphaned there, silently
+    // consuming quota every time Sam swaps a draft for a final edit.
+    if (photo.file_path) {
+      await supabase.storage.from("photos").remove([photo.file_path]);
+    }
+    if (photo.drive_file_id) {
+      const removed = await deleteDriveFile(photo.drive_file_id);
+      if (!removed) {
+        toast({
+          title: "Removed from gallery, but not from Drive",
+          description: "The file is still in Google Drive and will keep using storage.",
+          variant: "destructive",
+        });
+      }
+    }
+
     const { error } = await supabase
       .from("gallery_photos")
       .delete()
       .eq("id", photo.id);
 
-    if (!error) {
-      fetchGalleryPhotos(photo.gallery_id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
     }
+    fetchGalleryPhotos(photo.gallery_id);
+  };
+
+  /** Hands the gallery to the client, or pulls it back for more work. */
+  const setDelivered = async (gallery: Gallery, deliver: boolean) => {
+    const { error } = await supabase
+      .from("client_galleries")
+      .update({ delivered_at: deliver ? new Date().toISOString() : null })
+      .eq("id", gallery.id);
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    toast({
+      title: deliver ? "Delivered" : "Moved back to draft",
+      description: deliver
+        ? "The client can now see this gallery and download the photos."
+        : "The gallery is hidden from the client again while you work on it.",
+    });
+    fetchGalleries();
   };
 
   const copyGalleryLink = (gallery: Gallery) => {
@@ -464,12 +503,43 @@ export const ClientGalleryManager = () => {
                           No client assigned
                         </span>
                       )}
+                      {/* Whether the client can actually see this yet. */}
+                      {gallery.delivered_at ? (
+                        <span className="text-green-700 flex items-center gap-1">
+                          <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+                          Delivered {new Date(gallery.delivered_at).toLocaleDateString()}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <span className="w-2 h-2 bg-muted-foreground/60 rounded-full"></span>
+                          Draft &middot; hidden from client
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="px-6 pb-6">
                 <div className="flex flex-wrap gap-2 mb-6">
+                  {gallery.delivered_at ? (
+                    <Button size="sm" variant="outline" onClick={() => setDelivered(gallery, false)}>
+                      Move back to draft
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={() => setDelivered(gallery, true)}
+                      disabled={!gallery.client_id}
+                      title={
+                        gallery.client_id
+                          ? "Make this gallery visible to the client"
+                          : "Assign a client first"
+                      }
+                    >
+                      Deliver to client
+                    </Button>
+                  )}
                   <Button size="sm" variant="default" onClick={() => setSharingGallery(gallery)}>
                     <Share2 className="w-4 h-4 mr-2" />
                     Share Gallery

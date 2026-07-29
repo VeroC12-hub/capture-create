@@ -204,6 +204,22 @@ export const useGoogleDrive = () => {
     return null;
   };
 
+  /** Removes a file from Drive so replaced photos don't linger and consume quota. */
+  const deleteDriveFile = async (fileId: string): Promise<boolean> => {
+    if (!session) return false;
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-drive?action=delete-file&file_id=${encodeURIComponent(fileId)}`,
+        { method: "POST", headers: { Authorization: `Bearer ${session.access_token}` } }
+      );
+      return response.ok;
+    } catch (error) {
+      console.error("Error deleting Drive file:", error);
+      return false;
+    }
+  };
+
   /** Files inside a specific gallery folder, including thumbnail links. */
   const listFolderFiles = async (folderId: string): Promise<DriveFile[]> => {
     if (!session) return [];
@@ -325,6 +341,7 @@ export const useGoogleDrive = () => {
     listFiles,
     createGalleryFolder,
     listFolderFiles,
+    deleteDriveFile,
     uploadToDrive,
     getFileContent,
     checkConnection,

@@ -523,6 +523,37 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Remove a file from Drive. Without this, replacing an unedited photo with
+    // the final version leaves the original in Drive forever, eating quota.
+    if (action === 'delete-file') {
+      const fileId = url.searchParams.get('file_id');
+      if (!fileId) {
+        return new Response(JSON.stringify({ error: 'file_id is required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const res = await fetch(
+        `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}`,
+        { method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+
+      // 404 means it is already gone, which is the desired end state either way.
+      if (!res.ok && res.status !== 404) {
+        const detail = await res.text();
+        console.error('Drive delete failed:', detail);
+        return new Response(JSON.stringify({ error: 'Could not delete from Drive' }), {
+          status: 502,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Create the folder for one client's programme and return its id + link.
     // Structure: Photography / Clients / <client name> / <programme>
     if (action === 'create-gallery-folder') {
