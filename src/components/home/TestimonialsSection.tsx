@@ -1,29 +1,32 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
 
-const testimonials = [
-  {
-    name: "Sarah & Michael",
-    event: "Wedding",
-    quote: "They captured every emotion, every tear of joy, every laugh. Looking at our photos feels like reliving the happiest day of our lives.",
-    rating: 5
-  },
-  {
-    name: "Jennifer Liu",
-    event: "Corporate Event",
-    quote: "Professional, punctual, and incredibly talented. The corporate headshots elevated our entire brand presence.",
-    rating: 5
-  },
-  {
-    name: "David Chen",
-    event: "Product Photography",
-    quote: "Our product sales increased 40% after using their stunning product photography. Worth every penny.",
-    rating: 5
-  }
-];
+interface Testimonial {
+  name: string;
+  event: string;
+  quote: string;
+  rating: number;
+}
+
+/**
+ * Real client testimonials only.
+ *
+ * This previously shipped three invented reviews — "Sarah & Michael",
+ * "Jennifer Liu" and "David Chen", including a made-up "sales increased 40%"
+ * claim — presented as genuine feedback. Fabricated reviews mislead prospective
+ * clients and breach consumer-protection rules in most jurisdictions, so the
+ * section now stays hidden until Sam supplies words a real client actually said.
+ *
+ * Add entries here (with the client's permission to be named) and the section
+ * appears on the homepage automatically.
+ */
+const testimonials: Testimonial[] = [];
 
 const TestimonialsSection = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Nothing to show rather than something untrue.
+  if (testimonials.length === 0) return null;
 
   const next = () => {
     setCurrentIndex((prev) => (prev + 1) % testimonials.length);

@@ -2,37 +2,53 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { Award, Camera, Heart, Users } from "lucide-react";
+import { Building2, Camera, Heart, Users } from "lucide-react";
 import { useSiteImage } from "@/hooks/useSiteImages";
 
-const stats = [
-  { number: "500+", label: "Happy Clients" },
-  { number: "1,200+", label: "Photo Sessions" },
-  { number: "10+", label: "Years Experience" },
-  { number: "50+", label: "Awards Won" },
+/**
+ * Facts only Sam can confirm.
+ *
+ * The previous version of this page shipped invented figures — "500+ Happy
+ * Clients", "1,200+ Photo Sessions", "50+ Awards Won" — none of which came from
+ * him. Anything left empty here simply does not render, so the site can never
+ * publish a claim nobody verified. Fill a value in and its tile appears.
+ */
+const STUDIO_FACTS: { number: string; label: string }[] = [
+  { number: "", label: "Years Photographing" },
+  { number: "", label: "Weddings Covered" },
+  { number: "", label: "Events Documented" },
+  { number: "", label: "Corporate Clients" },
 ];
 
-const values = [
+/**
+ * Sectors evidenced by actual delivered work, rather than generic adjectives.
+ * Keep this honest — it is the part a prospective client will check.
+ */
+const disciplines = [
   {
     icon: Heart,
-    title: "Passion",
-    description: "Photography isn't just our profession—it's our calling. Every click is driven by love for the craft."
-  },
-  {
-    icon: Camera,
-    title: "Artistry",
-    description: "We blend technical excellence with creative vision to create images that transcend the ordinary."
+    title: "Weddings & Traditional Ceremonies",
+    description:
+      "Engagements, traditional marriages and receptions — from the kente and the knocking to the last dance of the night.",
   },
   {
     icon: Users,
-    title: "Connection",
-    description: "Building genuine relationships with our clients allows us to capture authentic, meaningful moments."
+    title: "Events & Celebrations",
+    description:
+      "Birthdays, milestones, launches and private functions, covered discreetly so the room never notices the camera.",
   },
   {
-    icon: Award,
-    title: "Excellence",
-    description: "We never settle. Every project receives our complete dedication and meticulous attention to detail."
-  }
+    icon: Building2,
+    title: "Corporate & Industrial",
+    description:
+      "Commissionings, conferences and site work for mining, manufacturing and hospitality clients across Ghana.",
+  },
+  {
+    icon: Camera,
+    title: "Portraits & Brand Work",
+    description:
+      "Graduations, professional headshots, product and lifestyle photography for businesses building a presence.",
+  },
 ];
 
 const About = () => {
@@ -63,28 +79,32 @@ const About = () => {
             About <span className="italic text-primary">Us</span>
           </h1>
           <p className="font-body text-lg text-muted-foreground max-w-2xl mx-auto">
-            Passionate photographers dedicated to capturing life's most precious moments with artistry and heart.
+            A photography and videography studio in Dawhenya, Ghana — covering
+            weddings, celebrations and corporate work across the country.
           </p>
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="py-16 bg-background border-b border-border">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <p className="font-display text-4xl md:text-5xl text-primary mb-2">
-                  {stat.number}
-                </p>
-                <p className="font-body text-sm text-muted-foreground uppercase tracking-widest">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
+      {/* Figures — only rendered once real ones are supplied, so the page never
+          shows an unverified claim or an empty tile. */}
+      {STUDIO_FACTS.some((s) => s.number.trim()) && (
+        <section className="py-16 bg-background border-b border-border">
+          <div className="container mx-auto px-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              {STUDIO_FACTS.filter((s) => s.number.trim()).map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <p className="font-display text-4xl md:text-5xl text-primary mb-2">
+                    {stat.number}
+                  </p>
+                  <p className="font-body text-sm text-muted-foreground uppercase tracking-widest">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Story with Images */}
       <section className="py-24 bg-background">
@@ -97,13 +117,19 @@ const About = () => {
                 </h2>
                 <div className="space-y-4 text-muted-foreground leading-relaxed">
                   <p>
-                    Founded over a decade ago, our studio began with a simple mission: to create photographs that don't just document moments, but truly capture the emotions within them.
+                    SamBlessing Photography is a Ghanaian studio based in Dawhenya,
+                    working across Accra, Tema and wherever the story takes us.
                   </p>
                   <p>
-                    What started as a passion project has grown into a full-service photography studio serving clients across weddings, corporate events, portraits, and commercial projects.
+                    The work runs from traditional marriages and receptions to
+                    industrial commissionings and corporate events — the kente and
+                    the celebration on one weekend, hard hats and plant floors the
+                    next. Both deserve the same care.
                   </p>
                   <p>
-                    Our approach combines technical excellence with artistic vision, ensuring every image we create is both beautiful and meaningful. We believe that photography is about connection—between the photographer and subject, between the image and viewer.
+                    Every frame is shot and finished by hand, and every client
+                    leaves with their photographs at full resolution, delivered
+                    through their own private gallery.
                   </p>
                 </div>
               </div>
@@ -128,20 +154,20 @@ const About = () => {
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <p className="font-body text-sm tracking-[0.3em] uppercase text-primary mb-4">
-              What Drives Us
+              What We Shoot
             </p>
             <h2 className="font-display text-3xl md:text-4xl text-foreground">
-              Our <span className="italic text-primary">Values</span>
+              Our <span className="italic text-primary">Work</span>
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {values.map((value, index) => (
+            {disciplines.map((value, index) => (
               <div key={index} className="text-center">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
                   <value.icon className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="font-display text-2xl text-foreground mb-3">
+                <h3 className="font-display text-xl text-foreground mb-3">
                   {value.title}
                 </h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">
