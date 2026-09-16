@@ -318,7 +318,7 @@ const ClientPortal = () => {
                     </div>
                     <div className="flex items-center gap-3">
                       <Phone className="w-4 h-4 text-primary" />
-                      <a href="tel:0543518185" className="text-sm hover:text-primary">
+                      <a href="tel:+233543518185" className="text-sm hover:text-primary">
                         0543518185
                       </a>
                     </div>

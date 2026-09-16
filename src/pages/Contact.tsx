@@ -197,7 +197,12 @@ const Contact = () => {
                     <h3 className="font-body text-sm uppercase tracking-widest text-foreground mb-1">
                       Email
                     </h3>
-                    <p className="text-muted-foreground">Slessing.studio20@gmail.com</p>
+                    <a
+                      href="mailto:Slessing.studio20@gmail.com"
+                      className="text-muted-foreground hover:text-primary transition-colors break-all"
+                    >
+                      Slessing.studio20@gmail.com
+                    </a>
                   </div>
                 </div>
 
@@ -209,7 +214,12 @@ const Contact = () => {
                     <h3 className="font-body text-sm uppercase tracking-widest text-foreground mb-1">
                       Phone
                     </h3>
-                    <p className="text-muted-foreground">0543518185</p>
+                    <a
+                      href="tel:+233543518185"
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      0543518185
+                    </a>
                   </div>
                 </div>
 
