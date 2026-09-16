@@ -17,10 +17,11 @@ const Footer = () => {
           <img src={footerImage2.imageUrl} alt="" className="w-full h-full object-cover" />
           <img src={footerImage3.imageUrl} alt="" className="w-full h-full object-cover" />
         </div>
-        {/* The mid-stop was /80, which bleached the photographs to near-white.
-            The bottom stays fully opaque so the band still blends seamlessly
-            into the footer background below it. */}
-        <div className="absolute inset-0 bg-gradient-to-t from-secondary via-secondary/55 to-transparent" />
+        {/* One flat wash across all three photographs.
+            A three-stop gradient landed differently on each image depending on
+            how bright it happened to be, so the outer two read while the middle
+            portrait bleached to near-white. A single value treats them alike. */}
+        <div className="absolute inset-0 bg-secondary/45" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
             <h3 className="font-display text-3xl md:text-4xl text-foreground mb-4">

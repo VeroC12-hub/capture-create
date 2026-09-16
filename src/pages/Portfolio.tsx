@@ -8,22 +8,28 @@ import {
   type GalleryPhoto,
 } from "@/hooks/useHomepageGallery";
 
+/* Caption and category sit beneath the print, the way they would on a gallery
+   wall. They previously floated on the photograph behind an 85% black gradient
+   that only appeared on hover, which meant the work was dimmed to read a label
+   that could just as easily live underneath it. */
 const PortfolioItem = ({ photo }: { photo: GalleryPhoto }) => (
-  <div className="group relative overflow-hidden rounded-lg aspect-[4/5] cursor-pointer">
-    <img
-      src={photo.url}
-      alt={photo.caption || `${categoryLabel(photo.category)} photography by SamBlessing`}
-      loading="lazy"
-      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-    />
-    {/* Dark scrim on hover so the label reads over any photograph. */}
-    <div className="absolute inset-0 bg-gradient-to-t from-charcoal/85 via-charcoal/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-    <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-      <p className="font-body text-xs uppercase tracking-widest text-gold-light">
+  <div className="group cursor-pointer">
+    <div className="relative overflow-hidden aspect-[4/5]">
+      <img
+        src={photo.url}
+        alt={photo.caption || `${categoryLabel(photo.category)} photography by SamBlessing`}
+        loading="lazy"
+        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+      />
+    </div>
+    <div className="mt-3">
+      <p className="font-body text-sm text-muted-foreground">
         {categoryLabel(photo.category)}
       </p>
       {photo.caption && (
-        <h3 className="font-display text-xl text-cream mt-1">{photo.caption}</h3>
+        <h3 className="font-display text-base text-foreground mt-0.5">
+          {photo.caption}
+        </h3>
       )}
     </div>
   </div>

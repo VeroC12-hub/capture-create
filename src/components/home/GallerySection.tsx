@@ -41,23 +41,28 @@ const GallerySection = () => {
             : featured.map((photo, index) => (
                 <div
                   key={photo.id}
-                  className={`relative group overflow-hidden rounded-lg ${
-                    index === 0 ? "col-span-2 row-span-2" : "aspect-[4/5]"
+                  className={`flex flex-col ${
+                    index === 0 ? "col-span-2 row-span-2" : ""
                   }`}
                 >
-                  <img
-                    src={photo.url}
-                    alt={photo.caption || `${categoryLabel(photo.category)} photography by SamBlessing`}
-                    loading="lazy"
-                    className="w-full h-full object-cover image-hover transition-all duration-700 group-hover:scale-110"
-                  />
-                  {/* Scrim so the category label stays readable on light photos. */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal/85 via-charcoal/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <div className="absolute bottom-6 left-6 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500">
-                    <span className="font-body text-sm uppercase tracking-widest text-gold-light">
-                      {categoryLabel(photo.category)}
-                    </span>
+                  {/* Nothing covers the photograph. The label used to need an
+                      85% black gradient to stay readable on top of it; under
+                      the image it needs no scrim at all. */}
+                  <div
+                    className={`relative overflow-hidden ${
+                      index === 0 ? "flex-1" : "aspect-[4/5]"
+                    }`}
+                  >
+                    <img
+                      src={photo.url}
+                      alt={photo.caption || `${categoryLabel(photo.category)} photography by SamBlessing`}
+                      loading="lazy"
+                      className="w-full h-full object-cover image-hover"
+                    />
                   </div>
+                  <span className="mt-3 font-body text-sm text-muted-foreground">
+                    {categoryLabel(photo.category)}
+                  </span>
                 </div>
               ))}
         </div>

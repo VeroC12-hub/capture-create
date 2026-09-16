@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,65 +6,73 @@
 
 @layer base {
   :root {
-    --background: 40 20% 98%;
-    --foreground: 30 10% 15%;
+    /* Gallery white. The walls stay silent so the photographs carry the colour. */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 11%;
 
-    --card: 40 15% 96%;
-    --card-foreground: 30 10% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 30 10% 15%;
+    --popover-foreground: 0 0% 11%;
 
-    --primary: 30 45% 35%;
-    --primary-foreground: 40 20% 98%;
+    /* Primary is ink, not gold. Buttons and links read as type, not ornament. */
+    --primary: 0 0% 11%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 35 15% 92%;
-    --secondary-foreground: 30 10% 25%;
+    --secondary: 0 0% 97%;
+    --secondary-foreground: 0 0% 11%;
 
-    --muted: 35 10% 90%;
-    --muted-foreground: 30 5% 45%;
+    --muted: 0 0% 97%;
+    --muted-foreground: 0 0% 43%;
 
-    --accent: 35 50% 45%;
-    --accent-foreground: 40 20% 98%;
+    --accent: 0 0% 95%;
+    --accent-foreground: 0 0% 11%;
 
     --destructive: 0 62% 50%;
-    --destructive-foreground: 40 20% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 35 15% 88%;
-    --input: 35 15% 88%;
-    --ring: 30 45% 35%;
+    --border: 0 0% 91%;
+    --input: 0 0% 91%;
+    --ring: 0 0% 11%;
 
-    --radius: 0.5rem;
+    /* Prints, not cards. */
+    --radius: 0.125rem;
 
-    --sidebar-background: 40 15% 96%;
-    --sidebar-foreground: 30 10% 15%;
-    --sidebar-primary: 30 45% 35%;
-    --sidebar-primary-foreground: 40 20% 98%;
-    --sidebar-accent: 35 15% 92%;
-    --sidebar-accent-foreground: 30 10% 25%;
-    --sidebar-border: 35 15% 88%;
-    --sidebar-ring: 30 45% 35%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 11%;
+    --sidebar-primary: 0 0% 11%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 97%;
+    --sidebar-accent-foreground: 0 0% 11%;
+    --sidebar-border: 0 0% 91%;
+    --sidebar-ring: 0 0% 11%;
 
-    /* Custom properties */
-    --gold: 35 50% 45%;
-    --gold-light: 35 40% 65%;
-    --gold-dark: 35 60% 30%;
-    --cream: 40 20% 96%;
-    --charcoal: 30 10% 20%;
-    
-    /* Typography */
-    --font-display: 'Cormorant Garamond', serif;
-    --font-body: 'Montserrat', sans-serif;
-    
-    /* Gradients */
-    --gradient-gold: linear-gradient(135deg, hsl(35 50% 45%), hsl(35 40% 65%));
-    --gradient-light: linear-gradient(180deg, hsl(40 20% 98%), hsl(40 15% 94%));
-    --gradient-overlay: linear-gradient(180deg, transparent 0%, hsl(30 10% 15% / 0.7) 100%);
-    
-    /* Shadows */
-    --shadow-gold: 0 4px 30px hsl(35 50% 45% / 0.15);
-    --shadow-card: 0 10px 40px hsl(30 10% 15% / 0.08);
-    --shadow-hover: 0 20px 50px hsl(30 10% 15% / 0.12);
+    /* Named palette. Kept as aliases so existing charcoal/cream utilities
+       resolve to the neutral scale instead of the old warm one. */
+    --ink: 0 0% 11%;
+    --slate: 0 0% 43%;
+    --rule: 0 0% 91%;
+    --wash: 0 0% 97%;
+    --charcoal: 0 0% 11%;
+    --cream: 0 0% 100%;
+    --gold: 0 0% 11%;
+    --gold-light: 0 0% 43%;
+    --gold-dark: 0 0% 11%;
+
+    /* Typography: one family, doing every job. */
+    --font-display: 'Schibsted Grotesk', system-ui, sans-serif;
+    --font-body: 'Schibsted Grotesk', system-ui, sans-serif;
+
+    /* No gradient washes. Photographs are never tinted by the theme. */
+    --gradient-gold: none;
+    --gradient-light: none;
+    --gradient-overlay: none;
+
+    /* Hairlines carry structure instead of shadows. */
+    --shadow-gold: none;
+    --shadow-card: none;
+    --shadow-hover: none;
   }
 
   .dark {
@@ -169,9 +177,10 @@
     @apply transition-all duration-500 ease-out;
   }
 
+  /* No brightness filter: the photograph is graded how Sam graded it. A small
+     scale is the whole hover, so nothing recolours his work on mouseover. */
   .image-hover:hover {
-    @apply scale-105;
-    filter: brightness(1.1);
+    @apply scale-[1.02];
   }
 }
 

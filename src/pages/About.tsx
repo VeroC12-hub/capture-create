@@ -61,17 +61,19 @@ const About = () => {
     <main className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Hero with Background Image */}
-      <section className="relative pt-32 pb-16 min-h-[60vh] flex items-center">
-        <div className="absolute inset-0 z-0">
+      {/* The photograph runs clean and the words sit underneath it.
+          This header used to fade the image into the page background so dark
+          text could be read on top of it, which washed the photograph out to
+          about a third of its brightness. Nothing covers it now. */}
+      <section className="pt-20">
+        <div className="w-full h-[44vh] min-h-[280px] overflow-hidden">
           <img
             src={heroImage.imageUrl}
             alt="About our photography studio"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/30 to-background" />
         </div>
-        <div className="container mx-auto px-6 text-center relative z-10">
+        <div className="container mx-auto px-6 text-center py-14 md:py-16">
           <p className="font-body text-sm tracking-[0.3em] uppercase text-primary mb-4">
             Our Story
           </p>

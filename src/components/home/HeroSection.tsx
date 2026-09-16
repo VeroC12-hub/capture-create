@@ -11,15 +11,16 @@ const HeroSection = () => {
       <div className="absolute inset-0 z-0">
         <img
           src={imageUrl}
-          alt="Romantic wedding photography at sunset"
+          alt="Photograph by SamBlessing Photography"
           className="w-full h-full object-cover"
         />
-        {/* Scrim: the hero image is client-managed and can be any brightness, so
-            the text sits on its own darkened layer rather than relying on the
-            photo being pale. Kept light overall so the photograph reads, with a
-            soft pool of shade behind the copy where legibility actually matters. */}
-        <div className="absolute inset-0 bg-gradient-to-b from-charcoal/45 via-charcoal/20 to-charcoal/50" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,hsl(var(--charcoal)/0.5)_0%,transparent_100%)]" />
+        {/* One soft wash, not three stacked layers.
+            Sam swaps the hero photo from the admin panel, so some scrim has to
+            stay or a bright outdoor shot would swallow the white headline. This
+            was 45/20/50 plus a 50% radial vignette, which dimmed the photograph
+            far more than legibility needs. A single light layer keeps the type
+            readable on any image while the photo runs close to full brightness. */}
+        <div className="absolute inset-0 bg-charcoal/25" />
       </div>
 
       {/* Content */}

@@ -20,7 +20,7 @@ const ServiceCard = ({
   return (
     <Link
       to={link}
-      className="group relative overflow-hidden rounded-lg aspect-[4/5]"
+      className="group relative overflow-hidden rounded-lg aspect-[4/3]"
     >
       {/* Background Image */}
       <img
@@ -29,8 +29,12 @@ const ServiceCard = ({
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
       />
       
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+      {/* One flat wash, the same on every card.
+          This was a three-stop gradient, so its strength depended on how bright
+          each photograph happened to be: the wedding dress faded heavily at the
+          bottom, the kente barely at all, and the boardroom washed out almost to
+          white. A single uniform value gives every card the same contrast. */}
+      <div className="absolute inset-0 bg-background/12" />
       
       {/* Content */}
       <div className="absolute inset-0 flex flex-col justify-end p-6">
