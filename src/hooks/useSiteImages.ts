@@ -174,10 +174,37 @@ export const useSiteImages = () => {
   };
 
   const updateImage = async (imageKey: string, filePath: string) => {
-    const { error } = await supabase
+    // Update, then check what it actually touched.
+    //
+    // This used to be a bare .update().eq(), which Postgres is perfectly happy
+    // to run against zero rows: no error, nothing written. When the site_images
+    // seed was incomplete, uploading a replacement appeared to succeed while
+    // the file path was silently dropped, and the site kept serving the bundled
+    // fallback. Selecting the affected rows back makes a no-op visible, and a
+    // missing row is created rather than ignored.
+    const { data: updated, error } = await supabase
       .from("site_images")
       .update({ file_path: filePath })
-      .eq("image_key", imageKey);
+      .eq("image_key", imageKey)
+      .select("image_key");
+
+    if (!error && (!updated || updated.length === 0)) {
+      const { error: insertError } = await supabase
+        .from("site_images")
+        .insert({
+          image_key: imageKey,
+          image_name: imageKey
+            .split("-")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" "),
+          category: imageKey.split("-")[0] || "general",
+          file_path: filePath,
+        });
+
+      if (insertError) {
+        return { error: insertError };
+      }
+    }
 
     if (!error) {
       // Update cache with timestamp to bust browser cache
